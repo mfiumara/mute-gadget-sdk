@@ -1,7 +1,7 @@
 ---
 name: gadget-vizio-d40f-g9
 description: >-
-  Control supported VIZIO D40f-G9 TV functions through paired local SmartCast HTTPS using Muse
+  Control supported VIZIO D40f-G9 TV functions through paired local SmartCast HTTPS using Mute
   Home Link. Use the shared Google Cast skill for media only when a separate Cast receiver is
   actually advertised.
 ---

@@ -251,7 +251,7 @@ size_t heap_caps_get_free_size(uint32_t caps)
 }
 
 #if !defined(__APPLE__)
-size_t muse_sim_strlcpy(char *destination, const char *source, size_t size)
+size_t mute_sim_strlcpy(char *destination, const char *source, size_t size)
 {
     size_t source_length = strlen(source);
     if (size) {

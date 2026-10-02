@@ -1,7 +1,7 @@
 ---
 name: gadget-lutron-smart-bridges
 description: >-
-  Read or control lights and shades on compatible Lutron Smart Bridges through Muse Home Link.
+  Read or control lights and shades on compatible Lutron Smart Bridges through Mute Home Link.
   Use authorized HAP pairing or independently paired LEAP; preserve any existing Apple Home
   setup.
 ---
@@ -20,7 +20,7 @@ Use this skill when fresh discovery identifies a compatible Lutron Smart Bridge 
 Follow the shared HomeLink networking and safety rules in `home_link.md`.
 
 - HAP requires the eight-digit setup code for a pairable bridge or previously authorized controller pairing keys.
-- A bridge already in Apple Home does not automatically give Muse its credentials. Do not reset or remove an existing pairing. If access is unavailable, use only a supported independently authorized alternative or request setup.
+- A bridge already in Apple Home does not automatically give Mute its credentials. Do not reset or remove an existing pairing. If access is unavailable, use only a supported independently authorized alternative or request setup.
 - LEAP uses a separate physical pairing flow and client certificate/private key; HAP credentials do not substitute for them.
 
 ## Workflow

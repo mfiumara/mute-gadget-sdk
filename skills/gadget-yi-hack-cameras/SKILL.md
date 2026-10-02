@@ -2,7 +2,7 @@
 name: gadget-yi-hack-cameras
 description: >-
   Retrieve snapshots or bounded streams from cameras already running compatible yi-hack
-  firmware through Muse Home Link. Use the installed fork's enabled HTTP or TCP-interleaved
+  firmware through Mute Home Link. Use the installed fork's enabled HTTP or TCP-interleaved
   RTSP service; not stock-camera access, flashing, or camera control.
 ---
 

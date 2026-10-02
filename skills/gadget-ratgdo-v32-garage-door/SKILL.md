@@ -1,7 +1,7 @@
 ---
 name: gadget-ratgdo-v32-garage-door
 description: >-
-  Read and operate installed ratgdo v32 garage-door, light, and lock entities through Muse
+  Read and operate installed ratgdo v32 garage-door, light, and lock entities through Mute
   Home Link. Use this device-specific skill when ratgdo firmware and capabilities are
   confirmed; require safe, authorized movement and preserve interlocks.
 ---

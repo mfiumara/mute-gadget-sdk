@@ -16,67 +16,48 @@ limitations under the License.
 
 # Linux Device SDK
 
-This turns any Linux computer, like a Raspberry Pi, into a Muse gadget.
-Install it, pair it with the Muse app, and Muse can run commands and move
-files on the machine.
+This turns any Linux computer, like a Raspberry Pi, into a Mute gadget.
+Install it, point it at your [Mute server](../server), and the model can run
+commands and move files on the machine.
 
-Then make it your own: wire up a sensor, bridge a webhook, or give Muse a new
+Then make it your own: wire up a sensor, bridge a webhook, or give Mute a new
 command.
 
 > **Note:** Built by hackers, for hackers, just for fun. Proceed at your own
-> risk! Muse gets the same access to the machine as the account you install it
+> risk! Mute gets the same access to the machine as the account you install it
 > for.
 
 ## What you need
 
-- **A Raspberry Pi with Bluetooth**: a 3B+, 4, 5 or Zero 2 W. Other Linux
-  computers work too, as long as they have Bluetooth LE.
-- **Raspberry Pi OS Bullseye or later**, Debian 11 or later, or Ubuntu 22.04
-  or later, already on your network. 32-bit and 64-bit both work.
+- **A Linux computer**, like a Raspberry Pi 3B+, 4, 5 or Zero 2 W, running
+  Raspberry Pi OS Bullseye or later, Debian 11 or later, or Ubuntu 22.04 or
+  later. 32-bit and 64-bit both work.
 - **An account with sudo** on the machine.
-- **An SDK token** from [gadgets.muse.ai](https://gadgets.muse.ai/settings/sdk-tokens)
-  (Account > SDK tokens). Every gadget needs one to pair, including ones you
-  build for yourself. Read the [Gadget SDK Terms](https://gadgets.muse.ai/sdk-terms)
-  before you use it.
-- **The Muse app** on your phone, to pair the device.
+- **A running [Mute server](../server)** and its `MUTE_DEVICE_TOKEN`.
 
 ## Install
 
-On the machine, as the account Muse should use:
+On the machine, as the account Mute should use:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/facebookincubator/muse-gadget-sdk/main/linux/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/mfiumara/mute-gadget-sdk/main/linux/install.sh -o install.sh
 less install.sh     # read it first
-bash install.sh --sdk-token mgst_…
+bash install.sh --server https://mute.example.com --token YOUR_DEVICE_TOKEN
 ```
 
 The installer checks your system, installs what it needs into
-`/opt/musegadget`, and starts the `musegadget` service. Before it gives Muse
-your account, it asks, and tells you if that account can use sudo. Then it
-opens Bluetooth pairing.
+`/opt/mutegadget`, checks the token against your server, and starts the
+`mutegadget` service. Before it gives Mute your account, it asks, and tells
+you if that account can use sudo.
 
-## Set it up with Muse
+The device connects to your server and stays connected, across reboots. To
+point it somewhere else later, run
+`sudo mutegadget pair --force --server URL --token TOKEN`.
 
-When the installer says pairing is open, go to the Muse app:
+The token is checked over HTTPS, then the session is encrypted end to end with
+Noise. Use `https://`; `http://` works on a network you trust.
 
-1. Turn on **Settings > Devices > Developer mode**.
-2. Add a device (**Settings > Devices > Add Device**, the **+** icon in the
-   top right). It shows up as `MuseGadgetXXXXXX`, with the name the
-   installer printed.
-3. Muse warns that this is a community device. Continue if it's yours.
-4. When asked for Wi-Fi, pick the network shown. The machine is already
-   online, so no password is needed.
-
-That's it: the device connects to Muse and stays connected, across reboots.
-Pairing is open for 10 minutes. To pair again later, run
-`sudo musegadget pair`.
-
-Every setup creates a fresh encrypted session, and pairing only opens when you
-run the installer or `musegadget pair` on the machine itself. Because these are
-community devices, pairing has no manufacturer verification and can't prevent
-an active man-in-the-middle attack. Set it up on a network you trust.
-
-## What Muse can do
+## What Mute can do
 
 | Command | What it does |
 |---|---|
@@ -86,50 +67,46 @@ an active man-in-the-middle attack. Set it up on a network you trust.
 | `device.health` | Reports uptime, load, memory, disk and temperature |
 
 Commands run as the account you installed for, with exactly that account's
-permissions. If it can use sudo, so can Muse.
+permissions. If it can use sudo, so can Mute.
 
-Ask Muse things like:
+Ask Mute things like:
 
 > What's using all the disk space on my Pi?
 
 > Install Home Assistant on my Pi and tell me how to open it.
 
-> Every morning at 7, check if my Pi's backups ran and tell me if they didn't.
-
 ## Hack and extend it
 
-Programs on the machine can send messages to Muse, with no credentials of
+Programs on the machine can send messages to Mute, with no credentials of
 their own:
 
 ```sh
-musegadget send-user-msg "The garage door has been open for an hour."
-musegadget send-user-msg --session-id 6f1c2d4e-0b7a-4c3e-9f5d-2a8b1e0c7d93 "Posted to a side chat"
+mutegadget send-user-msg "The garage door has been open for an hour."
+mutegadget send-user-msg --session-id 6f1c2d4e-0b7a-4c3e-9f5d-2a8b1e0c7d93 "Posted to a side chat"
 ```
 
 `--session-id` posts into a side chat: a new id starts one, and reusing it
 keeps later messages there. [`examples/pebble_ring_bridge.py`](examples/pebble_ring_bridge.py)
 is a complete example: a webhook listener that sends every note from a Pebble
-ring to its own Muse chat.
+ring to its own Mute chat.
 
 A few other ways to build on it:
 
-- **Let Muse do it.** Muse can run commands on the machine, so you can ask it to
+- **Let Mute do it.** Mute can run commands on the machine, so you can ask it to
   set up the rest: "Write a service that tells me when the Pi gets too hot."
-- **Add a command.** Commands live in [`src/musegadget/executor.py`](src/musegadget/executor.py):
+- **Add a command.** Commands live in [`src/mutegadget/executor.py`](src/mutegadget/executor.py):
   add a spec to `COMMAND_SPECS` and a branch in `Executor.run`.
   [`AGENTS.md`](AGENTS.md) walks through it.
-- **Change the account.** `bash install.sh --run-as someone` gives Muse a
+- **Change the account.** `bash install.sh --run-as someone` gives Mute a
   different account, such as one without sudo.
-- **Change the SDK token.** `bash install.sh --sdk-token mgst_…` replaces it.
-  It's saved in `/var/lib/musegadget/sdk_token`, readable only by root.
 
 ## Manage it
 
 ```sh
-musegadget info                          # name, node id and pairing state
-sudo systemctl status musegadget         # is it running?
-sudo journalctl -u musegadget -f         # follow the log
-sudo musegadget pair                     # pair again
+mutegadget info                          # name, node id and pairing state
+sudo systemctl status mutegadget         # is it running?
+sudo journalctl -u mutegadget -f         # follow the log
+sudo mutegadget pair --force --server URL --token TOKEN
 bash install.sh --uninstall              # remove it (add --purge to forget the pairing)
 ```
 
@@ -141,14 +118,8 @@ From this directory, with [uv](https://docs.astral.sh/uv/):
 uv run --with pytest --with . pytest
 ```
 
-The tests run anywhere, with no Bluetooth or Muse needed. To try a change on a
+The tests run anywhere, with no server needed. To try a change on a
 device, copy this directory to it and run `bash install.sh --from .`.
-
-## Community
-
-Meet other hackers who are building and customizing Muse gadgets in our
-community [Discord](https://discord.gg/3bhjCkZdd6). Get inspired, support each
-other, and share what you make.
 
 ## License
 

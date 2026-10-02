@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 namespace {
 
 bool IsValidInput(ConstByteSpan bytes) noexcept {
@@ -247,4 +247,4 @@ void Transport::DestroySecrets() noexcept {
   recvNonce_ = 0;
 }
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

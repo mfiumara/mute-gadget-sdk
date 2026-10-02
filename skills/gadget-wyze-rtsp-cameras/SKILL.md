@@ -2,7 +2,7 @@
 name: gadget-wyze-rtsp-cameras
 description: >-
   View or capture frames and bounded recordings from compatible Wyze Cam v2, Cam v3, or Pan v1
-  through Muse Home Link. Use only when legacy RTSP firmware is already installed and enabled
+  through Mute Home Link. Use only when legacy RTSP firmware is already installed and enabled
   with TCP media transport; not firmware installation or stock-camera access.
 ---
 

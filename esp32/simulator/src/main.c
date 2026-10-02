@@ -31,8 +31,8 @@
 #include "lvgl.h"
 #include "src/drivers/sdl/lv_sdl_window.h"
 
-#include "muse_state.h"
-#include "muse_ui.h"
+#include "mute_state.h"
+#include "mute_ui.h"
 #include "sim_board.h"
 #include "sim_platform.h"
 #include "sim_services.h"
@@ -43,15 +43,15 @@ static volatile sig_atomic_t s_quit;
 static bool s_ready;
 static float s_level;
 static float s_progress;
-static muse_power_t s_power = {
+static mute_power_t s_power = {
     .battery_pct = 72,
     .battery_mv = 3970,
     .charging = false,
     .usb = true,
 };
-static muse_ble_state_t s_ble_state = MUSE_BLE_CONNECTED;
+static mute_ble_state_t s_ble_state = MUTE_BLE_CONNECTED;
 static uint32_t s_passkey;
-static char s_ble_name[32] = "MuseGadget-SIM001";
+static char s_ble_name[32] = "MuteGadget-SIM001";
 
 static void usage(FILE *out, const char *argv0)
 {
@@ -71,7 +71,7 @@ static void usage(FILE *out, const char *argv0)
             "\n"
             "Interactive keys: F1..F7 select face states, H is happy, Space is\n"
             "push-to-talk, +/- change level, [/] change progress, S sleeps,\n"
-            "P writes muse-simulator.ppm, Esc quits. Mouse input is touch.\n",
+            "P writes mute-simulator.ppm, Esc quits. Mouse input is touch.\n",
             argv0);
 }
 
@@ -184,33 +184,33 @@ static bool parse_float(const char *text, float min, float max, float *out)
     return true;
 }
 
-static void select_mode(muse_mode_t mode)
+static void select_mode(mute_mode_t mode)
 {
     /* Production shutdown permits only Idle next. Preview controls should
      * still be able to select any state after showing Off. */
-    if (muse_state_mode(NULL) == MUSE_MODE_OFF && mode != MUSE_MODE_OFF) {
-        muse_state_set_mode(MUSE_MODE_IDLE);
+    if (mute_state_mode(NULL) == MUTE_MODE_OFF && mode != MUTE_MODE_OFF) {
+        mute_state_set_mode(MUTE_MODE_IDLE);
     }
-    muse_state_set_mode(mode);
+    mute_state_set_mode(mode);
 }
 
 static bool set_face(const char *value)
 {
     static const struct {
         const char *name;
-        muse_mode_t mode;
+        mute_mode_t mode;
     } modes[] = {
-        { "boot", MUSE_MODE_BOOT },
-        { "idle", MUSE_MODE_IDLE },
-        { "listening", MUSE_MODE_LISTENING },
-        { "thinking", MUSE_MODE_THINKING },
-        { "speaking", MUSE_MODE_SPEAKING },
-        { "error", MUSE_MODE_ERROR },
-        { "off", MUSE_MODE_OFF },
+        { "boot", MUTE_MODE_BOOT },
+        { "idle", MUTE_MODE_IDLE },
+        { "listening", MUTE_MODE_LISTENING },
+        { "thinking", MUTE_MODE_THINKING },
+        { "speaking", MUTE_MODE_SPEAKING },
+        { "error", MUTE_MODE_ERROR },
+        { "off", MUTE_MODE_OFF },
     };
     if (!strcmp(value, "happy")) {
-        select_mode(MUSE_MODE_IDLE);
-        muse_state_make_happy();
+        select_mode(MUTE_MODE_IDLE);
+        mute_state_make_happy();
         return true;
     }
     for (size_t i = 0; i < sizeof(modes) / sizeof(modes[0]); i++) {
@@ -226,19 +226,19 @@ static bool set_wifi(const char *value)
 {
     static const struct {
         const char *name;
-        muse_wifi_state_t state;
+        mute_wifi_state_t state;
     } states[] = {
-        { "off", MUSE_WIFI_OFF },
-        { "no_network", MUSE_WIFI_NO_NETWORK },
-        { "connecting", MUSE_WIFI_CONNECTING },
-        { "connected", MUSE_WIFI_CONNECTED },
-        { "failed", MUSE_WIFI_FAILED },
-        { "not_nearby", MUSE_WIFI_NOT_NEARBY },
+        { "off", MUTE_WIFI_OFF },
+        { "no_network", MUTE_WIFI_NO_NETWORK },
+        { "connecting", MUTE_WIFI_CONNECTING },
+        { "connected", MUTE_WIFI_CONNECTED },
+        { "failed", MUTE_WIFI_FAILED },
+        { "not_nearby", MUTE_WIFI_NOT_NEARBY },
     };
     for (size_t i = 0; i < sizeof(states) / sizeof(states[0]); i++) {
         if (!strcmp(value, states[i].name)) {
             sim_services_set_wifi(states[i].state,
-                                  states[i].state == MUSE_WIFI_CONNECTED ? "Muse Simulator" : "");
+                                  states[i].state == MUTE_WIFI_CONNECTED ? "Mute Simulator" : "");
             return true;
         }
     }
@@ -249,11 +249,11 @@ static bool set_ble(const char *value)
 {
     static const struct {
         const char *name;
-        muse_ble_state_t state;
+        mute_ble_state_t state;
     } states[] = {
-        { "off", MUSE_BLE_OFF },
-        { "advertising", MUSE_BLE_ADVERTISING },
-        { "connected", MUSE_BLE_CONNECTED },
+        { "off", MUTE_BLE_OFF },
+        { "advertising", MUTE_BLE_ADVERTISING },
+        { "connected", MUTE_BLE_CONNECTED },
     };
     for (size_t i = 0; i < sizeof(states) / sizeof(states[0]); i++) {
         if (!strcmp(value, states[i].name)) {
@@ -269,16 +269,16 @@ static bool set_link(const char *value)
 {
     static const struct {
         const char *name;
-        muse_link_state_t state;
+        mute_link_state_t state;
     } states[] = {
-        { "boot", MUSE_LINK_BOOT },
-        { "unpaired", MUSE_LINK_UNPAIRED },
-        { "pairing", MUSE_LINK_PAIRING },
-        { "confirm", MUSE_LINK_CONFIRM },
-        { "connecting", MUSE_LINK_CONNECTING },
-        { "online", MUSE_LINK_ONLINE },
-        { "offline", MUSE_LINK_OFFLINE },
-        { "error", MUSE_LINK_ERROR },
+        { "boot", MUTE_LINK_BOOT },
+        { "unpaired", MUTE_LINK_UNPAIRED },
+        { "pairing", MUTE_LINK_PAIRING },
+        { "confirm", MUTE_LINK_CONFIRM },
+        { "connecting", MUTE_LINK_CONNECTING },
+        { "online", MUTE_LINK_ONLINE },
+        { "offline", MUTE_LINK_OFFLINE },
+        { "error", MUTE_LINK_ERROR },
     };
     for (size_t i = 0; i < sizeof(states) / sizeof(states[0]); i++) {
         if (!strcmp(value, states[i].name)) {
@@ -298,41 +298,41 @@ static bool apply_setting(const char *key, const char *value, bool real_time)
         return set_face(value);
     }
     if (!strcmp(key, "caption")) {
-        muse_state_set_caption("%s", value);
+        mute_state_set_caption("%s", value);
         return true;
     }
     if (!strcmp(key, "level") && parse_float(value, 0.0f, 1.0f, &scalar)) {
         s_level = scalar;
-        muse_state_set_level(s_level);
+        mute_state_set_level(s_level);
         return true;
     }
     if (!strcmp(key, "progress") && parse_float(value, 0.0f, 1.0f, &scalar)) {
         s_progress = scalar;
-        muse_state_set_progress(s_progress);
+        mute_state_set_progress(s_progress);
         return true;
     }
     if (!strcmp(key, "battery") && parse_long(value, -1, 100, &number)) {
         s_power.battery_pct = (int)number;
-        muse_state_set_power(&s_power);
+        mute_state_set_power(&s_power);
         return true;
     }
     if (!strcmp(key, "battery_mv") && parse_long(value, 0, 6000, &number)) {
         s_power.battery_mv = (int)number;
-        muse_state_set_power(&s_power);
+        mute_state_set_power(&s_power);
         return true;
     }
     if (!strcmp(key, "usb") && parse_bool(value, &flag)) {
         s_power.usb = flag;
-        muse_state_set_power(&s_power);
+        mute_state_set_power(&s_power);
         return true;
     }
     if (!strcmp(key, "charging") && parse_bool(value, &flag)) {
         s_power.charging = flag;
-        muse_state_set_power(&s_power);
+        mute_state_set_power(&s_power);
         return true;
     }
     if (!strcmp(key, "asleep") && parse_bool(value, &flag)) {
-        muse_state_set_asleep(flag);
+        mute_state_set_asleep(flag);
         return true;
     }
     if (!strcmp(key, "wifi")) {
@@ -437,32 +437,32 @@ static int event_watch(void *userdata, SDL_Event *event)
     if (down && key == SDLK_ESCAPE) {
         s_quit = 1;
     } else if (down && key >= SDLK_F1 && key <= SDLK_F7) {
-        static const muse_mode_t modes[] = {
-            MUSE_MODE_BOOT, MUSE_MODE_IDLE, MUSE_MODE_LISTENING, MUSE_MODE_THINKING,
-            MUSE_MODE_SPEAKING, MUSE_MODE_ERROR, MUSE_MODE_OFF,
+        static const mute_mode_t modes[] = {
+            MUTE_MODE_BOOT, MUTE_MODE_IDLE, MUTE_MODE_LISTENING, MUTE_MODE_THINKING,
+            MUTE_MODE_SPEAKING, MUTE_MODE_ERROR, MUTE_MODE_OFF,
         };
         select_mode(modes[key - SDLK_F1]);
     } else if (down && key == SDLK_h) {
-        select_mode(MUSE_MODE_IDLE);
-        muse_state_make_happy();
+        select_mode(MUTE_MODE_IDLE);
+        mute_state_make_happy();
     } else if (key == SDLK_SPACE) {
-        select_mode(down ? MUSE_MODE_LISTENING : MUSE_MODE_THINKING);
+        select_mode(down ? MUTE_MODE_LISTENING : MUTE_MODE_THINKING);
     } else if (down && (key == SDLK_PLUS || key == SDLK_EQUALS || key == SDLK_KP_PLUS)) {
         s_level = s_level < 0.9f ? s_level + 0.1f : 1.0f;
-        muse_state_set_level(s_level);
+        mute_state_set_level(s_level);
     } else if (down && (key == SDLK_MINUS || key == SDLK_KP_MINUS)) {
         s_level = s_level > 0.1f ? s_level - 0.1f : 0.0f;
-        muse_state_set_level(s_level);
+        mute_state_set_level(s_level);
     } else if (down && key == SDLK_RIGHTBRACKET) {
         s_progress = s_progress < 0.9f ? s_progress + 0.1f : 1.0f;
-        muse_state_set_progress(s_progress);
+        mute_state_set_progress(s_progress);
     } else if (down && key == SDLK_LEFTBRACKET) {
         s_progress = s_progress > 0.1f ? s_progress - 0.1f : 0.0f;
-        muse_state_set_progress(s_progress);
+        mute_state_set_progress(s_progress);
     } else if (down && key == SDLK_s) {
-        muse_state_set_asleep(!muse_state_asleep());
+        mute_state_set_asleep(!mute_state_asleep());
     } else if (down && key == SDLK_p) {
-        (void)write_snapshot("muse-simulator.ppm");
+        (void)write_snapshot("mute-simulator.ppm");
     }
     return 1;
 }
@@ -507,14 +507,14 @@ int main(int argc, char **argv)
     sim_time_reset();
     sim_services_reset();
     lv_init();
-    muse_state_init();
-    muse_state_set_power(&s_power);
-    muse_board = sim_board_get();
-    if (muse_board->init && muse_board->init() != ESP_OK) {
+    mute_state_init();
+    mute_state_set_power(&s_power);
+    mute_board = sim_board_get();
+    if (mute_board->init && mute_board->init() != ESP_OK) {
         fprintf(stderr, "simulator board initialization failed\n");
         return 1;
     }
-    if (muse_ui_start() != ESP_OK) {
+    if (mute_ui_start() != ESP_OK) {
         fprintf(stderr, "UI initialization failed\n");
         return 1;
     }

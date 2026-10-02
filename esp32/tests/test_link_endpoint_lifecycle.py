@@ -68,7 +68,7 @@ class LinkEndpointLifecycleTest(unittest.TestCase):
 #include <string.h>
 #include "vm_api.h"
 #include "diagnostic_log.h"
-#define CONFIG_MUSE_ENABLED 0
+#define CONFIG_MUTE_ENABLED 0
 #define ESP_LOGW(...) ((void)0)
 #define ESP_LOGE(...) ((void)0)
 #define ESP_OK 0
@@ -229,7 +229,7 @@ int main(void) {
         expect_endpoints(VM_API_DEFAULT_BASE_URL, NOISE_DEFAULT_HOST);
     }
     check_boot(false, false, false, false);  // Orphan endpoint keys.
-    check_boot(false, false, true, false);   // Unpaired Wi-Fi on Muse.
+    check_boot(false, false, true, false);   // Unpaired Wi-Fi on Mute.
     check_boot(true, false, true, false);    // Marker without credentials.
     check_boot(true, true, true, true);     // Complete custom setup.
     check_boot(false, true, true, true);    // Legacy marker migration.
@@ -242,13 +242,14 @@ int main(void) {
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "endpoint_lifecycle.c"
             source.write_text(harness)
-            for name, wifi, unpaired_wifi in (("devkit", "", 0), ("muse", "", 1),
+            for name, wifi, unpaired_wifi in (("devkit", "", 0), ("mute", "", 1),
                                               ("dev_wifi", "dev", 0)):
                 with self.subTest(profile=name):
                     binary = Path(directory) / name
                     compiled = subprocess.run(
                         [*cc, "-std=c11", "-Wall", "-Wextra", "-Werror",
                          f'-DCONFIG_HOMEHUB_WIFI_SSID="{wifi}"',
+                         '-DCONFIG_MUTE_SERVER_HOST="mute.example.com"',
                          f"-DWIFI_WITHOUT_PAIRING={unpaired_wifi}",
                          "-I", str(ROOT / "main"), str(source), "-o", str(binary)],
                         capture_output=True, text=True,

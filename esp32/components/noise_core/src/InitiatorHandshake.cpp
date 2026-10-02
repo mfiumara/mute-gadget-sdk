@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 namespace {
 
 constexpr char kProtocolName[] = "Noise_XX_25519_AESGCM_SHA256";
@@ -552,4 +552,4 @@ void InitiatorHandshake::Poison() noexcept {
   stage_ = Stage::Poisoned;
 }
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

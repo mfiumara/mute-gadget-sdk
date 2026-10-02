@@ -1,7 +1,7 @@
 ---
 name: gadget-shelly-plugs
 description: >-
-  Switch Shelly Gen 4 plugs and read supported power or energy measurements through Muse Home
+  Switch Shelly Gen 4 plugs and read supported power or energy measurements through Mute Home
   Link. Use the local Shelly RPC API after confirming the actual plug and attached load; not
   the Gen 1 protocol.
 ---

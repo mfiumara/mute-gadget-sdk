@@ -50,14 +50,14 @@
 #include "esp_lcd_panel_rgb.h"
 #include "esp_rom_sys.h"
 #endif
-#elif CONFIG_HOMEHUB_LED_BACKEND_MUSE
-#include "muse_glue.h"
-#include "muse_ui.h"
+#elif CONFIG_HOMEHUB_LED_BACKEND_MUTE
+#include "mute_glue.h"
+#include "mute_ui.h"
 #endif
 
 static const char *TAG = "link.led";
 
-// Muse Home Link RGB LED: 3 channels, driven via LEDC PWM.
+// Mute Home Link RGB LED: 3 channels, driven via LEDC PWM.
 #if CONFIG_HOMEHUB_LED_BACKEND_PWM_RGB
 #if CONFIG_HOMEHUB_PRE_DVT_GPIO
 #define LED_R_GPIO   24
@@ -829,14 +829,14 @@ static bool led_hw_init(void) {
              LCD_H_RES, LCD_V_RES, LCD_PIN_BL);
     return true;
 }
-#elif CONFIG_HOMEHUB_LED_BACKEND_MUSE
+#elif CONFIG_HOMEHUB_LED_BACKEND_MUTE
 // Boards with the full UI show Link's status on screen instead of an LED.
 static void led_hw_set_color(rgb_t c) {
     (void)c;
 }
 
 static bool led_hw_init(void) {
-    ESP_LOGI(TAG, "LED status ready: Muse display");
+    ESP_LOGI(TAG, "LED status ready: Mute display");
     return true;
 }
 #else
@@ -1071,7 +1071,7 @@ bool led_status_init(void) {
         return false;
     }
 
-#if CONFIG_HOMEHUB_LED_BACKEND_NONE || CONFIG_HOMEHUB_LED_BACKEND_MUSE
+#if CONFIG_HOMEHUB_LED_BACKEND_NONE || CONFIG_HOMEHUB_LED_BACKEND_MUTE
     return true;
 #endif
 
@@ -1091,8 +1091,8 @@ bool led_status_init(void) {
 }
 
 void led_status_set_state(led_state_t state) {
-#if CONFIG_HOMEHUB_LED_BACKEND_MUSE
-    muse_glue_led_state(state);
+#if CONFIG_HOMEHUB_LED_BACKEND_MUTE
+    mute_glue_led_state(state);
     return;
 #endif
     if (!s_mutex) return;
@@ -1141,8 +1141,8 @@ bool led_status_display_info(int *width, int *height) {
     *width = LCD_H_RES;
     *height = LCD_V_RES;
     return true;
-#elif CONFIG_HOMEHUB_LED_BACKEND_MUSE && CONFIG_HOMEHUB_DISPLAY_COMMANDS
-    return muse_ui_image_size(width, height);
+#elif CONFIG_HOMEHUB_LED_BACKEND_MUTE && CONFIG_HOMEHUB_DISPLAY_COMMANDS
+    return mute_ui_image_size(width, height);
 #else
     (void)width;
     (void)height;
@@ -1153,9 +1153,9 @@ bool led_status_display_info(int *width, int *height) {
 int led_status_display_bits(void) {
 #if CONFIG_HOMEHUB_DISPLAY
     return s_panel ? 16 : 0;
-#elif CONFIG_HOMEHUB_LED_BACKEND_MUSE && CONFIG_HOMEHUB_DISPLAY_COMMANDS
+#elif CONFIG_HOMEHUB_LED_BACKEND_MUTE && CONFIG_HOMEHUB_DISPLAY_COMMANDS
     int w, h;
-    return muse_ui_image_size(&w, &h) ? 16 : 0;
+    return mute_ui_image_size(&w, &h) ? 16 : 0;
 #else
     return 0;
 #endif
@@ -1194,8 +1194,8 @@ bool led_status_draw_rect(int x, int y, int w, int h, const uint16_t *pixels) {
         return false;
     }
     return lcd_draw_image_rect(x, y, w, h, pixels);
-#elif CONFIG_HOMEHUB_LED_BACKEND_MUSE && CONFIG_HOMEHUB_DISPLAY_COMMANDS
-    return muse_ui_image_draw(x, y, w, h, pixels);
+#elif CONFIG_HOMEHUB_LED_BACKEND_MUTE && CONFIG_HOMEHUB_DISPLAY_COMMANDS
+    return mute_ui_image_draw(x, y, w, h, pixels);
 #else
     (void)x;
     (void)y;
@@ -1221,7 +1221,7 @@ void led_status_show_animation(void) {
     xSemaphoreTake(s_mutex, portMAX_DELAY);
     s_title_dirty = true;
     xSemaphoreGive(s_mutex);
-#elif CONFIG_HOMEHUB_LED_BACKEND_MUSE && CONFIG_HOMEHUB_DISPLAY_COMMANDS
-    muse_ui_image_hide();
+#elif CONFIG_HOMEHUB_LED_BACKEND_MUTE && CONFIG_HOMEHUB_DISPLAY_COMMANDS
+    mute_ui_image_hide();
 #endif
 }

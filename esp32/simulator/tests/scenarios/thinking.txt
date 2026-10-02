@@ -1,4 +1,4 @@
-# A reply caption while Muse is thinking.
+# A reply caption while Mute is thinking.
 face=thinking
 caption=Checking the workshop sensors...
 level=0.1

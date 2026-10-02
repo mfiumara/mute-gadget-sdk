@@ -84,7 +84,7 @@ class LinkBugReportHarnessTest(unittest.TestCase):
                 "-DLINK_FAKE_CUSTOM_TASKS=1",
                 "-DLINK_FAKE_CUSTOM_HEAP_CAPS=1",
                 "-DCONFIG_SPIRAM=1",
-                '-DCONFIG_GADGET_PRODUCT_NAME="Muse Gadget"',
+                '-DCONFIG_GADGET_PRODUCT_NAME="Mute Gadget"',
                 "-Wall",
                 "-Wextra",
                 "-Werror",

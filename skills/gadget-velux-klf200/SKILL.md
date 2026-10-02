@@ -2,7 +2,7 @@
 name: gadget-velux-klf200
 description: >-
   Read positions and control commissioned windows, blinds, shutters, or existing scenes
-  through VELUX KLF200 using Muse Home Link. Use the local binary TCP API with its API
+  through VELUX KLF200 using Mute Home Link. Use the local binary TCP API with its API
   credential; not KLF150 or new motor pairing.
 ---
 

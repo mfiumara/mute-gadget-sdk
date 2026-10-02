@@ -1,7 +1,7 @@
 ---
 name: gadget-epson-printers
 description: >-
-  Print on Epson IPP printers or scan from compatible Epson eSCL devices through Muse Home
+  Print on Epson IPP printers or scan from compatible Epson eSCL devices through Mute Home
   Link. Use only when the exact model advertises the corresponding print or scan service; IPP
   alone does not establish scanning support.
 ---

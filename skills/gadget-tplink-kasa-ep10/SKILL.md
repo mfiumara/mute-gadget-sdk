@@ -2,7 +2,7 @@
 name: gadget-tplink-kasa-ep10
 description: >-
   Read status and control relay or LED state on compatible TP-Link Kasa EP10 plugs through
-  Muse Home Link. Use the confirmed legacy IOT local TCP protocol; EP10 has no energy metering
+  Mute Home Link. Use the confirmed legacy IOT local TCP protocol; EP10 has no energy metering
   and does not use the EP25 authentication path.
 ---
 

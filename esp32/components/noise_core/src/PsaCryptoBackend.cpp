@@ -21,7 +21,7 @@
 #include <array>
 #include <cstdint>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 namespace {
 
 constexpr uint8_t kX25519LowByteClampMask = 0xf8;
@@ -662,4 +662,4 @@ Status PsaCryptoBackend::Aes256GcmOpen(
   return OkStatus();
 }
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

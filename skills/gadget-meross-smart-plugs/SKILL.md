@@ -1,7 +1,7 @@
 ---
 name: gadget-meross-smart-plugs
 description: >-
-  Read status and switch compatible Meross smart plugs through Muse Home Link. Use the signed
+  Read status and switch compatible Meross smart plugs through Mute Home Link. Use the signed
   local HTTP interface with an existing device UUID and key; not cloud key acquisition or
   generic HomeKit onboarding.
 ---

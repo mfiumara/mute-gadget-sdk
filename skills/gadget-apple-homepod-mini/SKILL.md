@@ -2,7 +2,7 @@
 name: gadget-apple-homepod-mini
 description: >-
   Control HomePod mini volume, supported existing-session playback, and output groups through
-  Muse Home Link. Use when the requested speaker exposes compatible local pyatv services; not
+  Mute Home Link. Use when the requested speaker exposes compatible local pyatv services; not
   for starting new audio streams.
 ---
 

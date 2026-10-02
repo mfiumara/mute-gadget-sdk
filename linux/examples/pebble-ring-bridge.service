@@ -13,12 +13,12 @@
 # limitations under the License.
 
 # Example unit for examples/pebble_ring_bridge.py. Run it as an account in
-# the musegadget socket's group (the account musegadget runs commands as).
+# the mutegadget socket's group (the account mutegadget runs commands as).
 
 [Unit]
-Description=Pebble ring webhook to a Muse side chat (via musegadget)
+Description=Pebble ring webhook to a Mute side chat (via mutegadget)
 Wants=network-online.target
-After=network-online.target musegadget.service
+After=network-online.target mutegadget.service
 
 [Service]
 User=@USER@

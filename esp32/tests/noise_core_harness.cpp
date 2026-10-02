@@ -23,7 +23,7 @@
 #include <xplat/noise/core/PsaCryptoBackend.h>
 #include <xplat/noise/core/Transport.h>
 
-namespace tn = musegadgets::noise::core;
+namespace tn = mutegadgets::noise::core;
 
 namespace {
 

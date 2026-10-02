@@ -2,7 +2,7 @@
 name: gadget-unifi-network-consoles
 description: >-
   Inspect read-only network inventory and status through an existing local UniFi Network
-  controller using Muse Home Link. Use an authorized compatible HTTPS API for the intended
+  controller using Mute Home Link. Use an authorized compatible HTTPS API for the intended
   site; not network configuration or client blocking.
 ---
 

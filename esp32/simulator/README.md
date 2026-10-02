@@ -16,8 +16,8 @@ limitations under the License.
 
 # UI simulator
 
-This is a desktop preview of the Muse interface in a 412 x 412 SenseCAP
-Watcher window. It compiles the production `muse_ui.c`, state and text code,
+This is a desktop preview of the Mute interface in a 412 x 412 SenseCAP
+Watcher window. It compiles the production `mute_ui.c`, state and text code,
 and the avatar renderer. SDL supplies the display, mouse input, and timing while
 small host adapters stand in for ESP-IDF, FreeRTOS, Wi-Fi, Bluetooth, Link,
 settings, and power services.
@@ -64,7 +64,7 @@ CMake uses a compatible system SDL2 when available and otherwise downloads
 the pinned SDL 2.32.10 archive. By default it always downloads pinned LVGL
 9.5.0 because the production UI needs version-specific private APIs and the
 fonts and drivers enabled by this simulator's configuration. Set
-`-DMUSE_SIM_FETCH_DEPS=OFF` only when both compatible system packages are
+`-DMUTE_SIM_FETCH_DEPS=OFF` only when both compatible system packages are
 available and LVGL was built with that configuration. After one successful
 fetch, CMake's
 `-DFETCHCONTENT_FULLY_DISCONNECTED=ON` option reuses the populated dependency
@@ -87,7 +87,7 @@ For a checked build with AddressSanitizer and UndefinedBehaviorSanitizer:
 ```sh
 cmake -S esp32/simulator -B esp32/simulator/build-asan -G Ninja \
   -DCMAKE_BUILD_TYPE=Debug \
-  -DMUSE_SIM_SANITIZERS=ON
+  -DMUTE_SIM_SANITIZERS=ON
 cmake --build esp32/simulator/build-asan --parallel
 ctest --test-dir esp32/simulator/build-asan --output-on-failure
 ```
@@ -100,7 +100,7 @@ AddressSanitizer runtime does not support it. Linux also enables leak detection.
 Run this from a terminal in a logged-in Linux or macOS desktop session:
 
 ```sh
-./esp32/simulator/build/muse_simulator
+./esp32/simulator/build/mute_simulator
 ```
 
 Mouse input acts as touch. The keyboard controls the common UI states:
@@ -113,16 +113,16 @@ Mouse input acts as touch. The keyboard controls the common UI states:
 | `+` / `-` | Raise or lower the audio level |
 | `[` / `]` | Lower or raise turn progress |
 | S | Toggle sleep |
-| P | Save `muse-simulator.ppm` in the current directory |
+| P | Save `mute-simulator.ppm` in the current directory |
 | Esc | Quit |
 
-Run `muse_simulator --help` for the same controls and all command-line
+Run `mute_simulator --help` for the same controls and all command-line
 options. On a MacBook, hold Fn or the Globe key while pressing F1 through F7
 unless macOS is configured to use those keys as standard function keys.
 
 For a quick manual smoke test:
 
-1. Confirm that a fixed-size 412 x 412 `Muse Gadget Simulator` window opens.
+1. Confirm that a fixed-size 412 x 412 `Mute Gadget Simulator` window opens.
 2. Press F3 for listening mode, then use `+` and `-` to change the level meter.
 3. Hold Space to listen and release it to enter thinking mode; the progress
    ring should become a moving segment.
@@ -131,13 +131,13 @@ For a quick manual smoke test:
 6. Press S to sleep, then click the dark window to wake it.
 7. Drag left across the window to open the settings placeholder and drag right
    to return to the avatar. Settings controls are not implemented in the simulator.
-8. Press P and confirm that `muse-simulator.ppm` appears in the current
+8. Press P and confirm that `mute-simulator.ppm` appears in the current
    directory, then press Esc to quit.
 
 An included scenario can also initialize a visible interactive session:
 
 ```sh
-./esp32/simulator/build/muse_simulator \
+./esp32/simulator/build/mute_simulator \
   --scenario esp32/simulator/tests/scenarios/pairing.txt
 ```
 
@@ -167,7 +167,7 @@ Render it without a display server and save the final composited simulator
 display as a binary PPM image:
 
 ```sh
-./esp32/simulator/build/muse_simulator \
+./esp32/simulator/build/mute_simulator \
   --headless \
   --scenario esp32/simulator/tests/scenarios/thinking.txt \
   --run-ms 250 \

@@ -2,7 +2,7 @@
 name: gadget-apple-tv-4k
 description: >-
   Control Apple TV 4K remote keys, installed apps, keyboard input, and supported sleep/wake
-  actions through Muse Home Link. Use with compatible local pyatv services and normal
+  actions through Mute Home Link. Use with compatible local pyatv services and normal
   user-approved pairing.
 ---
 

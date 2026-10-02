@@ -233,7 +233,7 @@ static void vTaskDelay(int ticks) { assert(ticks == 1); ++delays; }
 static uint64_t last_busy_us;
 static void idle_wait(esp_tls_t *, uint64_t) { vTaskDelay(1); }   // traffic still recent
 static void stack_monitor_poll(void *) { ++stack_polls; }
-// Muse's extra daemon requests (noise_ctrl_req_*) aren't built here.
+// Mute's extra daemon requests (noise_ctrl_req_*) aren't built here.
 static void req_end_all() {}
 #define ESP_LOGD log_message
 #define KEEPALIVE_INTERVAL_MS 60000

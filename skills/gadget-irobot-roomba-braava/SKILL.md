@@ -2,7 +2,7 @@
 name: gadget-irobot-roomba-braava
 description: >-
   Read status and send supported cleaning, pause, resume, or dock commands to compatible Wi-Fi
-  Roomba/Braava robots through Muse Home Link. Use documented local MQTT/TLS with existing
+  Roomba/Braava robots through Mute Home Link. Use documented local MQTT/TLS with existing
   BLID and password, not cloud credential retrieval.
 ---
 

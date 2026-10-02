@@ -22,7 +22,7 @@
 
 #include <xplat/noise/core/Span.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 inline void Zeroize(ByteSpan bytes) noexcept {
   volatile uint8_t* data = bytes.data();
@@ -99,4 +99,4 @@ class SecretArray {
   std::array<uint8_t, kSize> bytes_{};
 };
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

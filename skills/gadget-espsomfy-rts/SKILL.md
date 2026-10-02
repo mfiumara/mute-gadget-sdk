@@ -2,7 +2,7 @@
 name: gadget-espsomfy-rts
 description: >-
   Control commissioned Somfy RTS shades and existing groups through an installed ESPSomfy-RTS
-  gateway using Muse Home Link. Use its local HTTP API for supported movement and positioning;
+  gateway using Mute Home Link. Use its local HTTP API for supported movement and positioning;
   reported positions are estimates.
 ---
 

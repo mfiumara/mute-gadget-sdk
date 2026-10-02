@@ -316,7 +316,7 @@ static void dispatch_command_ex(const uint8_t *data, size_t len, bool decrypted)
     ESP_LOGI(TAG, "RX action: %s", act);
 
     if (!decrypted && strcmp(act, "pairing_client_hello") == 0 && config_setup_complete()) {
-        // BLE outlives setup only for a companion service (Muse phone setup).
+        // BLE outlives setup only for a companion service (Mute phone setup).
         // Re-pairing goes through unpair/reset, never a new session here.
         ble_server_send_status("error_pairing_unavailable");
     } else if (!decrypted && strcmp(act, "pairing_client_hello") == 0) {

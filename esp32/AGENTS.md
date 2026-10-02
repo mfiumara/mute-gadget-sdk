@@ -21,10 +21,9 @@ How to build this firmware and flash it onto your own ESP32 board. See
 
 ## What this is
 
-The ESP32 Device SDK: the ESP-IDF firmware (`muse-gadget`) powering Muse
-Home Link. It pairs with a phone over BLE, joins Wi-Fi, and holds an encrypted
-Noise session to a VM, with an optional home-network tunnel. `main/main.c` is the entry
-point and `main/app.c` holds most of the logic. `components/muse` adds a
+The ESP32 Device SDK: the ESP-IDF firmware (`mute-gadget`). It joins Wi-Fi
+and holds an encrypted Noise session to the user's Mute server (`../server`), with an optional home-network tunnel. `main/main.c` is the entry
+point and `main/app.c` holds most of the logic. `components/mute` adds a
 avatar/voice/settings UI on boards with a display.
 
 ## Prerequisites
@@ -50,12 +49,12 @@ before adding a feature to one.
 | Seeed SenseCAP Indicator | `esp32s3` | `devices/sdkconfig.sensecap-indicator` | `tools/board.sh sensecap-indicator` |
 | Seeed reTerminal E1001 | `esp32s3` | `devices/sdkconfig.reterminal-e1001` | `tools/board.sh reterminal-e1001` |
 | Home Assistant Voice Preview Edition | `esp32s3` | `devices/sdkconfig.home-assistant-voice` | `tools/board.sh home-assistant-voice` |
-| Waveshare ESP32-S3-Touch-AMOLED-1.75C | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-waveshare-s3-175c` | manual (below) |
-| AIPI Lite | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-aipi` | manual |
-| Waveshare ESP32-C6-Touch-AMOLED-1.8 | `esp32c6` | `devices/sdkconfig.muse;devices/sdkconfig.muse-waveshare-c6-18` | manual |
-| Seeed SenseCAP Watcher | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-sensecap-watcher` | manual |
-| M5Stack StickS3 | `esp32s3` | `devices/sdkconfig.muse;devices/sdkconfig.muse-m5stack-sticks3` | manual |
-| M5Stack StickC Plus2 | `esp32` | `devices/sdkconfig.muse;devices/sdkconfig.muse-m5stack-stickc-plus2` | manual |
+| Waveshare ESP32-S3-Touch-AMOLED-1.75C | `esp32s3` | `devices/sdkconfig.mute;devices/sdkconfig.mute-waveshare-s3-175c` | manual (below) |
+| AIPI Lite | `esp32s3` | `devices/sdkconfig.mute;devices/sdkconfig.mute-aipi` | manual |
+| Waveshare ESP32-C6-Touch-AMOLED-1.8 | `esp32c6` | `devices/sdkconfig.mute;devices/sdkconfig.mute-waveshare-c6-18` | manual |
+| Seeed SenseCAP Watcher | `esp32s3` | `devices/sdkconfig.mute;devices/sdkconfig.mute-sensecap-watcher` | manual |
+| M5Stack StickS3 | `esp32s3` | `devices/sdkconfig.mute;devices/sdkconfig.mute-m5stack-sticks3` | manual |
+| M5Stack StickC Plus2 | `esp32` | `devices/sdkconfig.mute;devices/sdkconfig.mute-m5stack-stickc-plus2` | manual |
 
 The default profile expects the C5 DevKitC-1: an addressable status LED on
 GPIO27, the BOOT button on GPIO28 (active low), 8 MB flash and quad PSRAM.
@@ -66,16 +65,20 @@ like most WS2812s: turn the option off in `idf.py menuconfig`, or in
 
 ## Build
 
-Every build needs the user's SDK token (`mgst_…`, from gadgets.muse.ai >
-Account > SDK tokens). Ask for it, then set `CONFIG_GADGET_SDK_TOKEN="mgst_…"`
-in that build directory's `sdkconfig` (or with `idf.py menuconfig`) before
-building. Without it the build warns, and the gadget will stop pairing once
-Muse requires tokens. Never commit the token or print it in full.
+Every build needs the user's server host and device token. Ask for them,
+then set `CONFIG_MUTE_SERVER_HOST="host"` (no `https://`) and
+`CONFIG_MUTE_DEVICE_TOKEN="…"` in that build directory's `sdkconfig` (or with
+`idf.py menuconfig`) before building, plus `CONFIG_HOMEHUB_WIFI_SSID` and
+`CONFIG_HOMEHUB_WIFI_PASSWORD`. Without a token the build warns and the device
+can't connect. Never commit the token or print it in full.
+
+The firmware connects over TLS on port 443 only, with the ESP-IDF public CA
+bundle, so the server needs a publicly trusted certificate.
 
 ### DevKitC-1 (default)
 
 ```sh
-idf.py build                    # -> build/muse-gadget.bin, config in build/sdkconfig
+idf.py build                    # -> build/mute-gadget.bin, config in build/sdkconfig
 ```
 
 ### Other boards, with the helper
@@ -97,9 +100,9 @@ from `$IDF_PATH`, `~/esp/esp-idf-v6.0.1`, `~/esp/esp-idf-v6` or `~/esp/esp-idf`.
 
 `tools/board.sh home-assistant-voice build` builds a status-and-voice gadget:
 the LED ring shows the status colours, holding the centre button records a
-voice note that Muse answers out loud, and the dial sets the speaker volume
+voice note that Mute answers out loud, and the dial sets the speaker volume
 (shown on the ring, kept across restarts). It advertises as
-`MuseGadget-ha-voice-XXXXXX`.
+`MuteGadget-ha-voice-XXXXXX`.
 
 - The console and flashing go through the S3's own USB-Serial-JTAG, which
   shows up as `/dev/cu.usbmodem*` like a DevKitC-1. With both plugged in, pass
@@ -112,41 +115,41 @@ voice note that Muse answers out loud, and the dial sets the speaker volume
 
 ### Boards with the full UI, by hand
 
-`tools/muse/board.sh build|flash <s3|aipi|c6|watcher|sticks3|plus2> [SERIAL|PORT]`
-builds one board in `build-muse-<profile>/`, logs to
-`/tmp/muse_build_<board>.log`, and clears `managed_components/` before and
+`tools/mute/board.sh build|flash <s3|aipi|c6|watcher|sticks3|plus2> [SERIAL|PORT]`
+builds one board in `build-mute-<profile>/`, logs to
+`/tmp/mute_build_<board>.log`, and clears `managed_components/` before and
 after so it doesn't clash with other boards. When flashing, it finds the
-board's port with `tools/muse/ports.py`, by the USB device behind it rather
+board's port with `tools/mute/ports.py`, by the USB device behind it rather
 than the port name, which changes when boards are re-cabled. With several
 boards of one kind attached, pass the device's USB serial number (on the chip's
-own USB serial port, its MAC) or the port; `tools/muse/ports.py --list` shows
+own USB serial port, its MAC) or the port; `tools/mute/ports.py --list` shows
 them. It finds ESP-IDF the way `tools/board.sh` does, trying
 `~/.espressif/esp-idf-v6.0.1` first. For an install anywhere else, set
 `IDF_EXPORT` to its `export.sh`, e.g. in your shell profile:
-`export IDF_EXPORT=/path/to/esp-idf/export.sh`. `tools/muse/avatar.py` builds
+`export IDF_EXPORT=/path/to/esp-idf/export.sh`. `tools/mute/avatar.py` builds
 through `board.sh`, so it needs the same.
 
-For bench testing, `MUSE_BENCH=1 tools/muse/board.sh build|flash ...` adds
-`devices/sdkconfig.muse-bench` and uses `build-muse-<profile>-bench/`. That
-turns on screenshots: `tools/muse/snap.py PORT KEYS OUT.png` sends bench keys
+For bench testing, `MUTE_BENCH=1 tools/mute/board.sh build|flash ...` adds
+`devices/sdkconfig.mute-bench` and uses `build-mute-<profile>-bench/`. That
+turns on screenshots: `tools/mute/snap.py PORT KEYS OUT.png` sends bench keys
 and saves the screen, and `>face=thinking` (or `idle`, `listening`,
 `speaking`, `error`, `boot`, `off`, `happy`) in KEYS picks the avatar mode first.
 Screenshots are off in normal builds because each one takes a buffer the size
 of the screen. `>face=` works in any build. Or run `idf.py` directly:
 
 ```sh
-idf.py -B build-muse-aipi -DIDF_TARGET=esp32s3 \
-  -DSDKCONFIG=build-muse-aipi/sdkconfig \
-  -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;devices/sdkconfig.muse;devices/sdkconfig.muse-aipi" build
+idf.py -B build-mute-aipi -DIDF_TARGET=esp32s3 \
+  -DSDKCONFIG=build-mute-aipi/sdkconfig \
+  -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;devices/sdkconfig.mute;devices/sdkconfig.mute-aipi" build
 ```
 
 To flash, add `-p PORT flash` with the same `-B`, target and defaults
 arguments, except on the SenseCAP Watcher: `idf.py flash` runs plain esptool,
 which fails on its USB bridge (see "Flash it"). Build the Watcher with
-`idf.py`, flash it with `tools/muse/board.sh flash watcher`, then
-`idf.py … -p PORT monitor` as usual; reading from the bridge works. Muse builds use `partitions_muse.csv` and need 16 MB of flash or
+`idf.py`, flash it with `tools/mute/board.sh flash watcher`, then
+`idf.py … -p PORT monitor` as usual; reading from the bridge works. Mute builds use `partitions_mute.csv` and need 16 MB of flash or
 more, except the StickS3 and StickC Plus2, which have 8 MB and use
-`partitions_muse_8mb.csv`.
+`partitions_mute_8mb.csv`.
 
 All boards share `managed_components/` and `dependencies.lock` in this
 directory. If the component manager fails after you switch between a board
@@ -178,12 +181,12 @@ flash size and status backend.
    itself, and this needs no guessing:
 
    ```sh
-   python3 tools/muse/chat.py --status     # {"board": "M5Stack StickS3", ...}
+   python3 tools/mute/chat.py --status     # {"board": "M5Stack StickS3", ...}
    ```
 
-   It also logs the name once at startup, as `muse: board: <name>`, which
-   `tools/muse/monitor.py PORT` captures because it resets the board first.
-   `components/muse/muse_app.c` logs it; each `components/muse/boards/board_*.c`
+   It also logs the name once at startup, as `mute: board: <name>`, which
+   `tools/mute/monitor.py PORT` captures because it resets the board first.
+   `components/mute/mute_app.c` logs it; each `components/mute/boards/board_*.c`
    sets its `.name`. Boards with the full UI only: the other overlays don't log a name.
 
 2. **Read the USB descriptor.** This works with no write access to the port and
@@ -209,7 +212,7 @@ flash size and status backend.
 
 4. **Fall back to a read-only capture.** If the board is mid-run and you can't
    write to the port, the `## Monitor` recipe below reads it without resetting,
-   and a talk press logs the board's own button name as `muse_input: waking
+   and a talk press logs the board's own button name as `mute_input: waking
    (<hint>)`:
 
    | Hint | Board |
@@ -239,12 +242,12 @@ add yourself to the `dialout` (or `uucp`) group. If the chip won't enter the
 bootloader, hold BOOT, tap RESET, release BOOT, and flash again.
 
 The M5Stack StickC Plus2's CH9102 bridge shows up as `/dev/cu.usbserial-*` or
-`/dev/ttyACM*`. It drops out above 230400 baud, so `tools/muse/board.sh`
+`/dev/ttyACM*`. It drops out above 230400 baud, so `tools/mute/board.sh`
 flashes it at 230400.
 
 The SenseCAP Watcher's bottom USB-C port has a CH342 bridge with two ports,
 both `/dev/cu.usbmodem*` on macOS. The ESP32-S3 console is the second (ending
-in `3`); the first is the Himax camera chip. Muse overwrites the Watcher's
+in `3`); the first is the Himax camera chip. Mute overwrites the Watcher's
 factory data, so back up its `nvsfactory` partition first (see
 `devices/README.md`).
 
@@ -254,8 +257,8 @@ packet at once, at any baud and on any USB port. Plain esptool then fails with
 uploading its stub, or `0105: The format of the received message is invalid`
 on the first flash block, by which point it has erased the bootloader. That
 leaves the Watcher unable to boot until a flash succeeds; the ROM loader still
-answers, so it isn't bricked. `tools/muse/board.sh flash watcher` goes through
-`tools/muse/paced_esptool.py`, which takes esptool's arguments and sends 64
+answers, so it isn't bricked. `tools/mute/board.sh flash watcher` goes through
+`tools/mute/paced_esptool.py`, which takes esptool's arguments and sends 64
 bytes at a time at the line rate, at 115200 baud. Use it in place of
 `python -m esptool` for anything that writes to the Watcher. A lower baud or
 another USB port doesn't help. Pacing works with macOS's built-in driver, so
@@ -267,8 +270,8 @@ unbootable again. To watch the progress, run the wrapper from the build
 directory:
 
 ```sh
-cd build-muse-sensecap-watcher
-python ../tools/muse/paced_esptool.py --chip esp32s3 -p PORT -b 115200 \
+cd build-mute-sensecap-watcher
+python ../tools/mute/paced_esptool.py --chip esp32s3 -p PORT -b 115200 \
   --before default-reset --after hard-reset write-flash "@flash_args"
 ```
 
@@ -304,44 +307,44 @@ while time.monotonic() < deadline:
         time.sleep(0.05)
 ```
 
-To capture from boot, use `tools/muse/monitor.py PORT [secs]`, which resets the
+To capture from boot, use `tools/mute/monitor.py PORT [secs]`, which resets the
 board first (it needs `pyserial`). A healthy boot logs
-`link.main: Muse Gadget starting`. For a board with the full UI, `$(tools/muse/ports.py BOARD)`
-gives the port, with BOARD as in `tools/muse/board.sh`.
+`link.main: Mute Gadget starting`. For a board with the full UI, `$(tools/mute/ports.py BOARD)`
+gives the port, with BOARD as in `tools/mute/board.sh`.
 
 ## Update my avatar
 
 When someone asks to put their own avatar on their board (or to update or
 change it), run this from `esp32/` with the sandbox off (it uses the serial
-port) and let it finish. It takes several minutes, mostly waiting for Muse:
+port) and let it finish. It takes several minutes, mostly waiting for the model:
 
 ```sh
-python3 tools/muse/avatar.py                    # draw their avatar
-python3 tools/muse/avatar.py --edit "CHANGE"    # change the one they have
+python3 tools/mute/avatar.py                    # draw their avatar
+python3 tools/mute/avatar.py --edit "CHANGE"    # change the one they have
 ```
 
-It checks the board, asks their Muse for the renderer through the board,
-saves it to `components/muse/avatar/muse_pixel.c` (gitignored), checks it on
+It checks the board, asks the model for the renderer through the board,
+saves it to `components/mute/avatar/mute_pixel.c` (gitignored), checks it on
 the host, then builds and flashes. Progress and errors go to stderr. Relay the
-line that starts with `Muse drew:` and the GIF paths. On failure, pass the
+line that starts with `Mute drew:` and the GIF paths. On failure, pass the
 message on. The exit status says what kind of failure it was:
 
 - **2**: no board, or it can't do this. If it says the board doesn't answer,
   rerun with `--board s3` or `--board aipi` (from the board's name, or ask) to
   flash firmware that can. On the C6 or Watcher, follow the manual steps in
-  `tools/muse/AVATAR_RECIPE.md`.
-- **3**: the board isn't on Wi-Fi, or it isn't paired in the Muse app and has
-  no device token, so their Muse isn't connected. Tell them, and point them to
-  the Muse app or `tools/muse/ble_setup.html`.
-- **1**: Muse's file still fails after two fix rounds, or the build or flash
-  failed. The previous avatar is in `muse_pixel.c.prev`, next to the new one.
+  `tools/mute/AVATAR_RECIPE.md`.
+- **3**: the board isn't on Wi-Fi, or has no device token, so it can't reach
+  the server. Tell them, and point them to the build settings above or
+  `tools/mute/ble_setup.html`.
+- **1**: the model's file still fails after two fix rounds, or the build or flash
+  failed. The previous avatar is in `mute_pixel.c.prev`, next to the new one.
 
-Don't commit anything in `components/muse/avatar/`. To see what the board
-says, run `python3 tools/muse/chat.py --status`. To ask their Muse something,
-run `python3 tools/muse/chat.py "question"`.
+Don't commit anything in `components/mute/avatar/`. To see what the board
+says, run `python3 tools/mute/chat.py --status`. To ask the model something,
+run `python3 tools/mute/chat.py "question"`.
 
-The default avatar is in `avatar/`: its renderer (`muse_pixel.c`) and
-its animation (`jollybot.gif`, and `happy_anim.c/.h` made from it by
+The default avatar is in `avatar/`: its renderer (`mute_pixel.c`) and
+its status-screen animation (`happy_anim.c/.h`, drawn by
 `tools/gen_happy_anim.py`).
 
 Third-party code keeps its upstream license and header: `minimp3.h` (CC0) and
@@ -349,46 +352,31 @@ Third-party code keeps its upstream license and header: `minimp3.h` (CC0) and
 their headers with the Apache one; `components/minimp3/README.md` says how to
 update minimp3.
 
-The Apache License doesn't cover the Jollybot avatar in `avatar/`. Its files
-carry only a Meta copyright line; don't add the Apache header to them.
+## First boot
 
-## First boot and pairing
+With `CONFIG_MUTE_SERVER_HOST`, `CONFIG_MUTE_DEVICE_TOKEN` and the Wi-Fi
+settings built in, the device stores the token on first boot, joins Wi-Fi and
+connects to the server. It needs no app and no pairing.
 
 The status LED (or the edge bars or avatar on display boards) shows the state:
 
 | Colour | Meaning |
 |---|---|
-| orange, breathing | BLE advertising, waiting for setup |
-| blue, breathing | pairing needs a physical button press |
-| blue | Wi-Fi or VM session coming up |
+| orange, breathing | no Wi-Fi or token built in; BLE setup is open |
+| blue | Wi-Fi or server session coming up |
 | green | connected (tunnel up, or control session up when the tunnel is off) |
-| yellow, blinking | VM switching or connection lost |
-| purple | unpaired |
+| yellow, blinking | connection lost, reconnecting |
+| purple | no device token |
 | red, blinking | error |
 
 Button (BOOT on the dev boards):
 
-- **short press**: confirm a pending pairing, or reopen the setup window if
-  setup isn't complete
-- **hold for 5 s**: reset setup (unpair and forget Wi-Fi)
+- **hold for 5 s**: forget saved Wi-Fi and tokens. Settings built into the
+  firmware come back on the next boot.
 
-The device advertises as `MuseGadget-XXXXXX` (`MuseGadget-Disp-XXXXXX` on the
-ideaspark, SenseCAP Indicator and reTerminal E1001 overlays, `MuseGadget-ha-voice-XXXXXX` on the
-Voice PE). It uses **community pairing v5**, so the phone app must support v5
-and list community devices. Community pairing needs the button press but has no
-manufacturer attestation, and it doesn't stop an active man-in-the-middle.
-
-Until it's paired, a board with the full UI shows that name on its screen, dim under the
-state, so you can tell which gadget to pick in the Muse app. A screen too narrow
-for the whole name shows the `XXXXXX` tail on its own, and a square 128 px
-screen (AIPI Lite) leaves it out, the same as it leaves out the state. Once it's
-paired (or has a token set by hand), the name goes, and the mic icon and the
-touch boards' speaker button appear. They're hidden until then, since a press
-can't reach Muse and there are no replies to mute.
-
-To skip BLE Wi-Fi provisioning while you iterate, set
-`CONFIG_HOMEHUB_WIFI_SSID` and `CONFIG_HOMEHUB_WIFI_PASSWORD` in `menuconfig`.
-The device still needs to be paired once for its token.
+The BLE pairing code (community pairing v5, `main/link_pairing.c`) is still in
+the firmware, but no app speaks it any more; boards with the full UI can also
+be set up over BLE from `tools/mute/ble_setup.html`.
 
 ## Configuration gotchas
 
@@ -406,38 +394,16 @@ The device still needs to be paired once for its token.
 - Don't move offsets in `partitions.csv`. `prod_data` and `prod_bak` are fixed
   manufacturing locations, and the table offset of `0x10000` leaves room for a
   larger Secure Boot bootloader. Check the `check_sizes` line in the build
-  output: app slots are 2 MB (4 MB on Muse).
+  output: app slots are 2 MB (4 MB on Mute).
 
-## Say Muse, never Hatch
+## Protocol names
 
-Users never see the name Hatch.
-
-- Anything a person reads says Muse, the Muse app, or the Muse's name:
-  - screen text and error captions (`CAN'T REACH MUSE`, not `CAN'T REACH HATCH`)
-  - settings labels
-  - Kconfig prompts and help
-  - log lines
-  - tool and script output
-  - docs
-- Don't use `hatch` in a new file name or identifier. Use `muse` or
-  `muse_gadget`. The Muse chat code is `components/muse/muse_chat*`.
-- The ESP32 account clients use `https://api.muse.ai`, or the `api_url_v2`
-  base the app sends during pairing, with bare API paths. They ignore
-  `api_url`: only older firmware reads it, and that firmware adds `/hatch/`
-  itself. Keep saving it so a device flashed back to older firmware still works.
-- `hatch` stays only where the server or the Muse app depends on it. Don't
-  rename these:
-  - the VM host `hatch.metaaivm.com`
-  - the `hatch_refresh:` auth prefix, the `hatch-web` app id and the
-    `HatchLink/` user agent
-  - pairing labels and ids such as `hatch-link-pairing-v%d`, the `hatch_link`
-    model and the `hatch-link:` device id
-  - the bug report fields
-  - the setup commands (`hatch.token` and the rest) and the `"hatch"` key
-    in the status JSON, which the app and older tools use
-- Some older identifiers still carry the name (`muse_hatch_*`,
-  `MUSE_HATCH_*`, `CONFIG_MUSE_HATCH`). Leave them unless you're asked to
-  rename them. Don't copy the name into new code.
+`hatch` survives only in wire identifiers the server and the Linux client
+share with this firmware: the `hatch_refresh:` auth prefix, the `hatch-web`
+app id, the `HatchLink/` user agent, pairing labels such as
+`hatch-link-pairing-v%d`, and the setup commands (`hatch.token` and the rest).
+Some older identifiers still carry it (`mute_hatch_*`, `CONFIG_MUTE_HATCH`).
+Don't use it in new names.
 
 ## Tests
 

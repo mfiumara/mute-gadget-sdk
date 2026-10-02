@@ -17,14 +17,12 @@ from __future__ import annotations
 import os
 import stat
 
-from musegadget import config, identity
+from mutegadget import config, identity
 
 
-def test_names_share_the_suffix():
+def test_node_id_uses_the_suffix():
     ident = identity.Identity("02:00:00:ab:cd:ef")
     assert ident.node_id == "homelink-abcdef"
-    assert ident.device_id == "hatch-link:02:00:00:ab:cd:ef"
-    assert ident.ble_name == "MuseGadgetABCDEF"
 
 
 def test_generated_mac_is_locally_administered_unicast():

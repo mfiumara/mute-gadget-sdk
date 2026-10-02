@@ -2,7 +2,7 @@
 name: gadget-eufy-robovac-tuya
 description: >-
   Read status and send basic cleaning or docking commands to compatible Tuya-based eufy
-  RoboVacs through Muse Home Link. Use with a confirmed model schema and existing local key;
+  RoboVacs through Mute Home Link. Use with a confirmed model schema and existing local key;
   excludes non-Wi-Fi and AIOT/X10 models.
 ---
 

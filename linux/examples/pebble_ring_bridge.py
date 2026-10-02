@@ -13,21 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Forward Pebble ring transcriptions to a Muse side chat.
+"""Forward Pebble ring transcriptions to a Mute side chat.
 
 A small webhook listener: the ring's companion app POSTs each transcription
 to ``/ingest`` (multipart form or JSON, authenticated with a shared secret),
-and this hands it to ``musegadget send-user-msg``, which delivers it over the device's
-existing connection to the Muse. It holds no Muse credentials itself.
+and this hands it to ``mutegadget send-user-msg``, which delivers it over the device's
+existing connection to the Mute. It holds no Mute credentials itself.
 
 Configuration (environment):
   PEBBLE_SESSION_ID   side chat to post into (required)
   PEBBLE_SECRET_FILE  file holding the shared secret (default /etc/pebble-bridge/secret)
   PEBBLE_PORT         port to listen on (default 8787)
-  MUSEGADGET          path to the musegadget command
+  MUTEGADGET          path to the mutegadget command
 
 Standard library only; run it with the system Python as an account in the
-musegadget socket's group.
+mutegadget socket's group.
 """
 
 from __future__ import annotations
@@ -83,7 +83,7 @@ def presented_token(headers, fields: dict) -> str:
 
 
 def send_user_msg(text: str) -> tuple[bool, str]:
-    command = [os.environ.get("MUSEGADGET", "/opt/musegadget/venv/bin/musegadget"),
+    command = [os.environ.get("MUTEGADGET", "/opt/mutegadget/venv/bin/mutegadget"),
                "send-user-msg", "--session-id", os.environ["PEBBLE_SESSION_ID"], "-"]
     try:
         result = subprocess.run(command, input=text, text=True, capture_output=True,

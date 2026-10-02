@@ -22,8 +22,8 @@ overlay: a short file of settings loaded on top of
 memory, button, and how the device shows its status. The ESP32-C5 DevKitC-1 is
 the default and needs no overlay.
 
-Every board pairs with the Muse app, joins your Wi-Fi, and holds an encrypted
-session to Muse. The rest depends on the hardware.
+Every board joins your Wi-Fi and holds an encrypted session to your Mute
+server. The rest depends on the hardware.
 
 ## Supported devices
 
@@ -47,7 +47,7 @@ session to Muse. The rest depends on the hardware.
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | Home-network tunnel | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ |
 | Shows status on | Light | Screen | Screen | E-paper | Light ring | Avatar | Avatar | Avatar | Avatar | Avatar | Avatar |
-| Images from Muse | — | ✅ | ✅ | Black and white | — | ✅ | ✅ | — | ✅ | ✅ | ✅ |
+| Images from Mute | — | ✅ | ✅ | Black and white | — | ✅ | ✅ | — | ✅ | ✅ | ✅ |
 | UI and settings | — | — | — | — | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Push-to-talk | — | — | — | — | ✅ | ✅ | ✅ | Text replies | ✅ | ✅ | ✅ |
 | Speaker and mic | — | — | — | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Buzzer and mic |
@@ -58,49 +58,49 @@ session to Muse. The rest depends on the hardware.
 | Buttons | BOOT | BOOT | Top | Green | Centre (talk), dial | PWR (talk), BOOT | Two | BOOT (talk), PWR | Wheel (press to talk, turn to sleep) | Front (talk), side (menu), PWR | Front (talk), side (menu), PWR |
 
 Boards without PSRAM (the ideaspark and the Waveshare C6) don't have room for
-the home-network tunnel. Muse can still reach and control them once the
+the home-network tunnel. Mute can still reach and control them once the
 control session is up. The Waveshare C6 also can't hold its own voice
 session, so push-to-talk sends your voice note over its control session to the
-Muse it's paired with, and the reply scrolls past as text instead of being
+Mute it's paired with, and the reply scrolls past as text instead of being
 spoken. It can't show images either: the UI holds a whole image in
 PSRAM, where the ideaspark draws one straight to its screen.
 
 The SenseCAP Indicator's sensors hang off its RP2040, which passes the
 readings to the ESP32-S3. The D1S and D1Pro have CO2 and tVOC sensors built
 in, and temperature and humidity come from the Grove AHT20 in the box (plug it
-in). Muse reads them all at once with `sensors.read`. This needs Seeed's stock
+in). Mute reads them all at once with `sensors.read`. This needs Seeed's stock
 RP2040 firmware.
 
 The reTerminal E1001's e-paper shows only black and white, 1 bit per pixel,
 and keeps its picture without power. It shows a still status screen (the
 agent's name, the character and a line of status text) that changes only when
-the status does, since each refresh takes a second or two. Images from Muse are dithered
+the status does, since each refresh takes a second or two. Images from Mute are dithered
 to black and white on the device and refresh once they are all in, with a
-brief black-and-white flash. `display.draw_url` tells Muse the bit depth.
+brief black-and-white flash. `display.draw_url` tells Mute the bit depth.
 
 The SenseCAP Watcher keeps its factory data (the identity SenseCraft uses) in
-an `nvsfactory` partition at `0x9000`, where Muse puts its partition table and
-NVS. It's unique to each Watcher, so back it up before you flash Muse the first
+an `nvsfactory` partition at `0x9000`, where Mute puts its partition table and
+NVS. It's unique to each Watcher, so back it up before you flash Mute the first
 time. To return to Seeed's firmware, flash it and then write the backup back:
 
 ```sh
-tools/muse/paced_esptool.py --chip esp32s3 -p PORT read-flash 0x9000 0x32000 nvsfactory.bin
-tools/muse/paced_esptool.py --chip esp32s3 -p PORT write-flash 0x9000 nvsfactory.bin
+tools/mute/paced_esptool.py --chip esp32s3 -p PORT read-flash 0x9000 0x32000 nvsfactory.bin
+tools/mute/paced_esptool.py --chip esp32s3 -p PORT write-flash 0x9000 nvsfactory.bin
 ```
 
 The Watcher's CH342 USB bridge corrupts reads at 921600 baud and above, so
 these use esptool's default of 115200. It also drops bytes when a whole packet
 arrives at once, so plain esptool can't upload its stub or write flash
 (`0107: Checksum error`, `0105: The format of the received message is
-invalid`). `tools/muse/paced_esptool.py` takes esptool's arguments and sends 64
-bytes at a time at the line rate; `tools/muse/board.sh flash watcher` uses it.
+invalid`). `tools/mute/paced_esptool.py` takes esptool's arguments and sends 64
+bytes at a time at the line rate; `tools/mute/board.sh flash watcher` uses it.
 
 The M5Stack StickS3 has 8 MB of flash, so it uses its own partition table with
 two smaller app slots. The front button is push-to-talk and the side button
-steps through the menu, as on the AIPI. Powering off from Muse turns off the
+steps through the menu, as on the AIPI. Powering off from Mute turns off the
 screen, speaker and codec and puts the ESP32-S3 in deep sleep; either button
 wakes it. Double-click the power button for a full power-off, and click it to
-turn back on. Muse turns off the power chip's green LED, which would otherwise
+turn back on. Mute turns off the power chip's green LED, which would otherwise
 stay lit. The IMU, IR and Grove port aren't used yet.
 [M5Unified](https://github.com/m5stack/M5Unified) is M5Stack's reference
 driver for the power chip and peripherals.
@@ -108,7 +108,7 @@ driver for the power chip and peripherals.
 M5Stack ships the StickS3 with UiFlow2, which hands the ESP32-S3's USB to its
 own driver and switches off the chip's USB serial port, so esptool can't find
 it. The power chip drives the boot pin (GPIO0), so there's no BOOT button
-either. To flash Muse the first time, put UiFlow2 in USB mode, open its REPL
+either. To flash Mute the first time, put UiFlow2 in USB mode, open its REPL
 (for example with `mpremote repl`) and paste:
 
 ```python
@@ -122,15 +122,15 @@ m[0x60008120] = (m[0x60008120] | (1 << 20)) & ~(1 << 19)  # give it the USB pins
 The REPL stops answering. Unplug the USB cable and plug it back in (the
 battery keeps the stick running), and it shows up as a USB JTAG/serial port.
 Anything that resets the stick now boots UiFlow2 again, so pass
-`--after no-reset` to esptool until Muse is on. Back up the flash, then flash
-Muse:
+`--after no-reset` to esptool until Mute is on. Back up the flash, then flash
+Mute:
 
 ```sh
 python -m esptool --chip esp32s3 -p PORT --after no-reset read-flash 0 0x800000 sticks3.bin
-tools/muse/board.sh flash sticks3 PORT
+tools/mute/board.sh flash sticks3 PORT
 ```
 
-Muse keeps the USB serial port on, so later flashes need none of this. To go
+Mute keeps the USB serial port on, so later flashes need none of this. To go
 back to UiFlow2, write the backup:
 
 ```sh
@@ -144,16 +144,16 @@ power button wakes the screen, and holding it for 2 s powers off. There's no
 power chip: the power button switches the stick on and the ESP32 keeps it on
 (GPIO4). Powering off lets go of that, which cuts the power on battery. On
 USB the stick stays powered, so the ESP32 also goes into deep sleep, and the
-front or power button wakes it. Muse speaks through a small passive buzzer,
+front or power button wakes it. Mute speaks through a small passive buzzer,
 so replies are quiet. The battery shows its voltage, but the stick can't tell
-Muse whether it's on USB or charging. The IMU, IR, RTC and Grove port aren't
+Mute whether it's on USB or charging. The IMU, IR, RTC and Grove port aren't
 used yet. [M5Unified](https://github.com/m5stack/M5Unified) and
 [M5GFX](https://github.com/m5stack/M5GFX) are M5Stack's reference drivers
 for the pins and peripherals.
 
 The Plus2's console is a CH9102 USB-UART bridge, which drops out above
-230400 baud, so `tools/muse/board.sh flash plus2` uses 230400. It comes with
-M5Stack's factory firmware. Back up the flash before you flash Muse for the
+230400 baud, so `tools/mute/board.sh flash plus2` uses 230400. It comes with
+M5Stack's factory firmware. Back up the flash before you flash Mute for the
 first time:
 
 ```sh
@@ -175,26 +175,26 @@ board's overlays, in order:
 | Seeed SenseCAP Indicator | `esp32s3` | [`devices/sdkconfig.sensecap-indicator`](sdkconfig.sensecap-indicator) | `tools/board.sh sensecap-indicator build` |
 | Seeed reTerminal E1001 | `esp32s3` | [`devices/sdkconfig.reterminal-e1001`](sdkconfig.reterminal-e1001) | `tools/board.sh reterminal-e1001 build` |
 | Home Assistant Voice PE | `esp32s3` | [`devices/sdkconfig.home-assistant-voice`](sdkconfig.home-assistant-voice) | `tools/board.sh home-assistant-voice build` |
-| Waveshare S3 1.75C | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-waveshare-s3-175c`](sdkconfig.muse-waveshare-s3-175c) | by hand |
-| AIPI Lite | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-aipi`](sdkconfig.muse-aipi) | by hand |
-| Waveshare C6 1.8 | `esp32c6` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-waveshare-c6-18`](sdkconfig.muse-waveshare-c6-18) | by hand |
-| SenseCAP Watcher | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-sensecap-watcher`](sdkconfig.muse-sensecap-watcher) | by hand |
-| M5Stack StickS3 | `esp32s3` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-m5stack-sticks3`](sdkconfig.muse-m5stack-sticks3) | by hand |
-| M5Stack StickC Plus2 | `esp32` | [`devices/sdkconfig.muse`](sdkconfig.muse), [`devices/sdkconfig.muse-m5stack-stickc-plus2`](sdkconfig.muse-m5stack-stickc-plus2) | by hand |
+| Waveshare S3 1.75C | `esp32s3` | [`devices/sdkconfig.mute`](sdkconfig.mute), [`devices/sdkconfig.mute-waveshare-s3-175c`](sdkconfig.mute-waveshare-s3-175c) | by hand |
+| AIPI Lite | `esp32s3` | [`devices/sdkconfig.mute`](sdkconfig.mute), [`devices/sdkconfig.mute-aipi`](sdkconfig.mute-aipi) | by hand |
+| Waveshare C6 1.8 | `esp32c6` | [`devices/sdkconfig.mute`](sdkconfig.mute), [`devices/sdkconfig.mute-waveshare-c6-18`](sdkconfig.mute-waveshare-c6-18) | by hand |
+| SenseCAP Watcher | `esp32s3` | [`devices/sdkconfig.mute`](sdkconfig.mute), [`devices/sdkconfig.mute-sensecap-watcher`](sdkconfig.mute-sensecap-watcher) | by hand |
+| M5Stack StickS3 | `esp32s3` | [`devices/sdkconfig.mute`](sdkconfig.mute), [`devices/sdkconfig.mute-m5stack-sticks3`](sdkconfig.mute-m5stack-sticks3) | by hand |
+| M5Stack StickC Plus2 | `esp32` | [`devices/sdkconfig.mute`](sdkconfig.mute), [`devices/sdkconfig.mute-m5stack-stickc-plus2`](sdkconfig.mute-m5stack-stickc-plus2) | by hand |
 
 `tools/board.sh BOARD [build|flash|monitor|flash-monitor] [PORT]` builds each
 board in its own `build-<board>` directory. For the boards with the full UI, run `idf.py`
 with the target and overlays from the table:
 
 ```sh
-idf.py -B build-muse-aipi -DIDF_TARGET=esp32s3 \
-  -DSDKCONFIG=build-muse-aipi/sdkconfig \
-  -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;devices/sdkconfig.muse;devices/sdkconfig.muse-aipi" build
+idf.py -B build-mute-aipi -DIDF_TARGET=esp32s3 \
+  -DSDKCONFIG=build-mute-aipi/sdkconfig \
+  -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;devices/sdkconfig.mute;devices/sdkconfig.mute-aipi" build
 ```
 
 To flash, add `-p PORT flash` with the same arguments. Boards with the full UI need 16 MB
 of flash or more, except the StickS3 and StickC Plus2, whose overlays switch
-to the 8 MB layout in [`partitions_muse_8mb.csv`](../partitions_muse_8mb.csv).
+to the 8 MB layout in [`partitions_mute_8mb.csv`](../partitions_mute_8mb.csv).
 [`AGENTS.md`](../AGENTS.md) covers flashing, monitoring, and what to do when a
 build picks up stale settings.
 
@@ -213,14 +213,11 @@ A board with a new kind of display, or one that runs the UI, needs code
 as well. [`AGENTS.md`](AGENTS.md) walks through every kind of board, from the
 overlay to testing on hardware.
 
-Got it working on something new? Share it in the
-[Muse Gadgets Discord](https://discord.gg/3bhjCkZdd6).
-
 ### Watcher camera
 
 Camera support is disabled by default. In the Watcher build's `menuconfig`,
-under **Muse**, enable **SenseCAP Watcher camera capture and live preview**
-(`CONFIG_MUSE_WATCHER_CAMERA=y`) and rebuild. It requires PSRAM. Disabled
+under **Mute**, enable **SenseCAP Watcher camera capture and live preview**
+(`CONFIG_MUTE_WATCHER_CAMERA=y`) and rebuild. It requires PSRAM. Disabled
 builds omit the camera worker, shutter UI, double-click gesture, and
 `camera.capture` command.
 

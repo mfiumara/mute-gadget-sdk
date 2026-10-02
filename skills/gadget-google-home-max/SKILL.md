@@ -1,7 +1,7 @@
 ---
 name: gadget-google-home-max
 description: >-
-  Play audio and control playback or volume on Google Home Max through Muse Home Link. Use its
+  Play audio and control playback or volume on Google Home Max through Mute Home Link. Use its
   available Cast receiver and the shared Google Cast skill; this does not provide general
   auxiliary-input control.
 ---

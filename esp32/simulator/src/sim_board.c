@@ -24,8 +24,8 @@
 
 static lv_display_t *s_display;
 
-/* muse_ui.c reads the selected board through this production global. */
-const muse_board_t *muse_board;
+/* mute_ui.c reads the selected board through this production global. */
+const mute_board_t *mute_board;
 
 static esp_err_t sim_init(void)
 {
@@ -41,7 +41,7 @@ static lv_display_t *sim_display_start(lv_indev_t **touch)
     /* The SDL driver installs SDL_GetTicks. Use the simulator clock instead so
      * scripted runs can advance time without sleeping and render repeatably. */
     lv_tick_set_cb(sim_time_tick_ms);
-    lv_sdl_window_set_title(s_display, "Muse Gadget Simulator");
+    lv_sdl_window_set_title(s_display, "Mute Gadget Simulator");
     lv_sdl_window_set_resizeable(s_display, false);
     if (touch) {
         *touch = lv_sdl_mouse_create();
@@ -74,7 +74,7 @@ static esp_err_t sim_power_off(void)
     return ESP_FAIL;
 }
 
-static const muse_board_t s_sim_board = {
+static const mute_board_t s_sim_board = {
     .name = "SenseCAP Watcher Simulator",
     .width = WATCHER_RESOLUTION,
     .height = WATCHER_RESOLUTION,
@@ -94,7 +94,7 @@ static const muse_board_t s_sim_board = {
     .power_off = sim_power_off,
 };
 
-const muse_board_t *sim_board_get(void)
+const mute_board_t *sim_board_get(void)
 {
     return &s_sim_board;
 }

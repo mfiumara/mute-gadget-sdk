@@ -1,7 +1,7 @@
 ---
 name: gadget-lg-webos-tvs
 description: >-
-  Control supported LG webOS TV inputs, apps, audio, and remote functions through Muse Home
+  Control supported LG webOS TV inputs, apps, audio, and remote functions through Mute Home
   Link. Use normal local SSAP WebSocket pairing; route Cast media to the shared Google Cast
   skill only if a separate receiver is advertised.
 ---

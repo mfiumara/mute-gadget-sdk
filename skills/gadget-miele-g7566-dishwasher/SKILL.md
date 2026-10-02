@@ -1,7 +1,7 @@
 ---
 name: gadget-miele-g7566-dishwasher
 description: >-
-  Read local Miele G 7566 dishwasher status through Muse Home Link when its module supports
+  Read local Miele G 7566 dishwasher status through Mute Home Link when its module supports
   the documented protocol and existing GroupID/GroupKey are available. Consider commands only
   after confirming exact capabilities and local enablement; remote start is not promised.
 ---

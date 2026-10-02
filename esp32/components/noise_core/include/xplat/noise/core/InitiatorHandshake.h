@@ -25,7 +25,7 @@
 #include <xplat/noise/core/Span.h>
 #include <xplat/noise/core/Status.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 // Exception-free initiator-side core for `Noise_XX_25519_AESGCM_SHA256`.
 //
@@ -187,4 +187,4 @@ class InitiatorHandshake {
   Stage stage_{Stage::Init};
 };
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

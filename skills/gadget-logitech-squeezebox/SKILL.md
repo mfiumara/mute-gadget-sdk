@@ -2,7 +2,7 @@
 name: gadget-logitech-squeezebox
 description: >-
   Read player status and control Squeezebox playback or volume through an existing local
-  Lyrion/Squeezebox server using Muse Home Link. Use for players already connected to that
+  Lyrion/Squeezebox server using Mute Home Link. Use for players already connected to that
   server, not new server deployment.
 ---
 

@@ -63,7 +63,7 @@ extern "C" bool noise_tx_has_dma_headroom(size_t *dma_free) {
     return available >= NOISE_TX_DMA_RESERVE_BYTES;
 }
 
-#if CONFIG_MUSE_ENABLED
+#if CONFIG_MUTE_ENABLED
 extern "C" bool noise_tx_has_dma_headroom_reclaiming(size_t reclaimable) {
     return heap_caps_get_free_size(MALLOC_CAP_DMA) + reclaimable
         >= NOISE_TX_DMA_RESERVE_BYTES;

@@ -17,8 +17,8 @@
 #include "app.h"
 #include "esp_log.h"
 #include "diagnostic_log.h"
-#if CONFIG_MUSE_ENABLED
-#include "muse_glue.h"
+#if CONFIG_MUTE_ENABLED
+#include "mute_glue.h"
 #endif
 
 void app_main(void) {
@@ -29,8 +29,8 @@ void app_main(void) {
     }
 #endif
     ESP_LOGI("link.main", CONFIG_GADGET_PRODUCT_NAME " starting");
-#if CONFIG_MUSE_ENABLED
-    muse_glue_start();
+#if CONFIG_MUTE_ENABLED
+    mute_glue_start();
 #endif
     app_run();
 }

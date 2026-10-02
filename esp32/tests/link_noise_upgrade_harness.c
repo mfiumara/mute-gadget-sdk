@@ -91,7 +91,7 @@ static void test_the_worst_case_macro_is_actually_the_worst_case(void) {
 static int build(const char *vm_id, const char *token, char *out,
                  size_t out_cap) {
     return noise_upgrade_build_request("/v1/noise", vm_id,
-                                       "muse-gadget.vm.example", token,
+                                       "mute-gadget.vm.example", token,
                                        out, out_cap);
 }
 

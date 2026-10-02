@@ -44,7 +44,7 @@ typedef struct {
 typedef void (*camera_frame_cb_t)(const camera_frame_t *frame, void *ctx);
 
 typedef struct {
-    const char *name;         /* for people and Muse: "Himax WiseEye2 (SenseCAP Watcher)" */
+    const char *name;         /* for people and Mute: "Himax WiseEye2 (SenseCAP Watcher)" */
     int max_width, max_height;
     /* Once, before the first capture; NULL if there's nothing to set up. */
     esp_err_t (*init)(void);

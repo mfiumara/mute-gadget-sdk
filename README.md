@@ -14,51 +14,46 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# Muse Gadgets
+# Mute Gadgets
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/images/muse-gadgets-dark.png">
-    <img src=".github/images/muse-gadgets-light.png" width="900" alt="Muse gadgets: a Waveshare round AMOLED, an M5Stack StickS3, Muse Home Link, a Raspberry Pi and a Seeed reTerminal e-ink display">
-  </picture>
-</p>
+Mute gadgets are open source devices you build yourself, talking to **your
+own backend** and **any model provider you choose**. Program an off-the-shelf
+ESP32 board or set up a Raspberry Pi, point it at your Mute server, and talk
+to it. The model can drive every connected gadget's commands as tools.
 
-Muse gadgets are open source devices you build yourself. Program an
-off-the-shelf ESP32 board or set up a Raspberry Pi with our device SDKs, then
-connect Muse to your displays, buttons, sensors, actuators, and whatever else
-you've got lying on your workbench.
-
-We open sourced the SDKs and firmware here. It's built by hackers, for hackers,
-just for fun. Side effects of tinkering may include bricked boards, voided
-warranties, brownouts, or bankruptcies. Proceed at your own risk!
+Mute is a fork of Meta's
+[muse-gadget-sdk](https://github.com/facebookincubator/muse-gadget-sdk) with
+Meta's cloud, app, accounts and branding taken out. Nothing here talks to
+Meta.
 
 | | |
 |---|---|
-| [**ESP32 Device SDK**](esp32) | Connect your ESP32 board to Muse through our open source SDK. Throw in a screen to show images, add audio in and out, or wire up other sensors. |
-| [**Linux Device SDK**](linux) | Turn that spare Raspberry Pi or Linux box into a Muse gadget. Hack in your own commands to let Muse handle sysadmin chores or your Home Assistant setup. |
+| [**Server**](server) | The backend gadgets connect to. One Python file; works with OpenAI, OpenRouter, Groq, Ollama, LM Studio, vLLM, or anything OpenAI-compatible. |
+| [**ESP32 Device SDK**](esp32) | Firmware for ESP32 boards: status lights, screens, push-to-talk voice, images. |
+| [**Linux Device SDK**](linux) | Turn a Raspberry Pi or any Linux box into a gadget the model can run commands on. |
+| [**Skills**](skills) | Notes for the model on driving common home devices through a gadget. |
 
-Before you flash or pair a gadget, get an
-[SDK token](https://gadgets.muse.ai/settings/sdk-tokens) and review the
-[Gadget SDK Terms](https://gadgets.muse.ai/sdk-terms). Every gadget needs a
-token to pair.
+## Quick start
 
-ESP32 and Linux gadgets pair with the Muse app on iOS and Android, via
-Settings > Devices. Turn on Developer mode there first, then look for devices
-prefixed with "MuseGadget".
+1. Run the [server](server/README.md) somewhere your gadgets can reach over
+   HTTPS, with a long random `MUTE_DEVICE_TOKEN`.
+2. Linux: `bash linux/install.sh --server https://your-host --token TOKEN`.
+3. ESP32: set the server host, the token and your Wi-Fi in `idf.py menuconfig`
+   (ESP32 Device SDK), then build and flash. See [`esp32/`](esp32).
+
 Each directory has a `README.md` to get started and an `AGENTS.md` for coding
-agents like [Muse Code](https://developer.meta.com/ai/lp/muse-code/).
+agents.
 
-## Community
-
-Meet other hackers who are building and customizing Muse gadgets in our
-community [Discord](https://discord.gg/3bhjCkZdd6). Get inspired, support each
-other, and share what you make.
+Built for hackers, just for fun. Side effects of tinkering may include bricked
+boards, voided warranties, brownouts, or bankruptcies. Proceed at your own
+risk!
 
 ## License
 
-Muse Gadgets is licensed under the Apache License, Version 2.0, found in
-[`LICENSE`](LICENSE), except for these third-party files, which keep their
-upstream licenses:
+Mute Gadgets is licensed under the Apache License, Version 2.0, found in
+[`LICENSE`](LICENSE). Files that came from the upstream project keep Meta's
+copyright notice, as the license requires; see [`NOTICE`](NOTICE). These
+third-party files keep their own licenses:
 
 | Path | Upstream | License |
 |---|---|---|
@@ -68,5 +63,3 @@ upstream licenses:
 Dependencies fetched at build time are under their own licenses: ESP-IDF
 components (into `esp32/managed_components/`), and the simulator's LVGL and
 SDL (listed in [`esp32/simulator/THIRD_PARTY.md`](esp32/simulator/THIRD_PARTY.md)).
-
-The Apache License does not cover the [Jollybot avatar](esp32/avatar).

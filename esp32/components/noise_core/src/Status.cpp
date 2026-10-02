@@ -16,7 +16,7 @@
 
 #include <xplat/noise/core/Status.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 const char* StatusCodeToString(StatusCode code) noexcept {
   switch (code) {
@@ -46,4 +46,4 @@ const char* Status::str() const noexcept {
   return StatusCodeToString(code_);
 }
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

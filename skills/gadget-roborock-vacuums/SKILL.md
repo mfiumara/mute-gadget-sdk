@@ -2,7 +2,7 @@
 name: gadget-roborock-vacuums
 description: >-
   Read status and send supported cleaning, pause, or dock commands to compatible Roborock
-  vacuums through Muse Home Link. Use python-roborock's encrypted local TCP channel with
+  vacuums through Mute Home Link. Use python-roborock's encrypted local TCP channel with
   existing credentials; not Mi Home UDP miIO or A01 wet/dry devices.
 ---
 

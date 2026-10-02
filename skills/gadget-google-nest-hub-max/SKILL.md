@@ -1,7 +1,7 @@
 ---
 name: gadget-google-nest-hub-max
 description: >-
-  Play supported media and control playback or volume on Google Nest Hub Max through Muse Home
+  Play supported media and control playback or volume on Google Nest Hub Max through Mute Home
   Link. Use its available receiver and the shared Google Cast skill; this does not expose the
   camera, microphone, or security recordings.
 ---

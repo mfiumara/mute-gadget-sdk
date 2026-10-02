@@ -1,7 +1,7 @@
 ---
 name: gadget-brother-printers
 description: >-
-  Print documents and inspect print jobs on Brother IPP printers through Muse Home Link. Use
+  Print documents and inspect print jobs on Brother IPP printers through Mute Home Link. Use
   when the printer advertises IPP/IPPS; check its formats and capabilities, including the
   documented MFC-J880DW PWG Raster path.
 ---

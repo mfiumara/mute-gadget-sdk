@@ -21,7 +21,7 @@
 #include <xplat/noise/core/Span.h>
 #include <xplat/noise/core/Status.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 class CryptoBackend {
  public:
@@ -78,4 +78,4 @@ class CryptoBackend {
       ByteSpan plaintextOut) noexcept = 0;
 };
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

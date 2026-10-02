@@ -26,8 +26,8 @@ dependencies.lock
 
 .claude/
 
-# Your own avatar (tools/muse/AVATAR_RECIPE.md): built when present, never committed.
-components/muse/avatar/
+# Your own avatar (tools/mute/AVATAR_RECIPE.md): built when present, never committed.
+components/mute/avatar/
 
 # Local debug artifacts (not tracked).
 *.log

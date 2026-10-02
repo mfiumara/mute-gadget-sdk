@@ -2,7 +2,7 @@
 name: gadget-dyson-pure-hot-cool-hp04
 description: >-
   Read Dyson Pure Hot+Cool HP04 status and operate supported fan or heating controls through
-  Muse Home Link. Use only with a compatible local MQTT interface and existing device
+  Mute Home Link. Use only with a compatible local MQTT interface and existing device
   credentials.
 ---
 

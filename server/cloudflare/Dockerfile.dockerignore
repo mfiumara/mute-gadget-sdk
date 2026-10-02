@@ -1,0 +1,6 @@
+*
+!linux
+!server/mute_server.py
+linux/.venv
+linux/build
+**/__pycache__

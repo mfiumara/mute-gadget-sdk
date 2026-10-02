@@ -2,7 +2,7 @@
 name: gadget-tplink-kasa-ep25
 description: >-
   Control relay, LED, and supported auto-off settings or read energy measurements on TP-Link
-  Kasa EP25 through Muse Home Link. Use the confirmed SMART local protocol and approved
+  Kasa EP25 through Mute Home Link. Use the confirmed SMART local protocol and approved
   credentials, not EP10 legacy XOR.
 ---
 

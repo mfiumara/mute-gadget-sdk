@@ -47,7 +47,7 @@ static const char *TAG = "link.image";
 // scratch, and the receive buffer needs one contiguous block, so without
 // PSRAM it rarely fits next to the Noise session.
 #define FETCH_HTTP_BYTES    (6 * 1024)
-#if CONFIG_HOMEHUB_LED_BACKEND_MUSE && CONFIG_SPIRAM && CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC
+#if CONFIG_HOMEHUB_LED_BACKEND_MUTE && CONFIG_SPIRAM && CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC
 // On boards with the full UI, mbedTLS allocates from PSRAM, so HTTPS only adds a little
 // socket state and needs no large internal block. The display backends keep
 // the sizes they were tuned with.
@@ -101,7 +101,7 @@ typedef struct {
 
 // Boards with the full UI also take IMAGE_FETCH_CENTRE, which centres a JPEG down the
 // screen and starts raw data at the top. The display backends don't.
-#if CONFIG_HOMEHUB_LED_BACKEND_MUSE
+#if CONFIG_HOMEHUB_LED_BACKEND_MUTE
 #define CENTRED(f) ((f)->row == IMAGE_FETCH_CENTRE)
 #define MIN_ROW    IMAGE_FETCH_CENTRE
 #else

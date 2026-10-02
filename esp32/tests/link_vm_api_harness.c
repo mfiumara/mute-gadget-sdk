@@ -20,7 +20,7 @@
 #include <string.h>
 
 #include "esp_http_client.h"
-#include "muse_account_api.h"
+#include "mute_account_api.h"
 #include "vm_api.h"
 #include "vm_connect.h"
 
@@ -249,7 +249,7 @@ static void expect_empty_tokens(const vm_device_tokens_t *tokens) {
 }
 
 static void expect_url(const recorded_request_t *request, const char *suffix) {
-    const char *base = "https://api.muse.ai";
+    const char *base = "https://mute.example.com";
     char expected[256];
     snprintf(expected, sizeof(expected), "%s%s", base, suffix);
     CHECK(strcmp(request->url, expected) == 0, "unexpected url: %s", request->url);
@@ -355,28 +355,6 @@ static void test_refresh_success_via_access_token(void) {
           "unexpected refresh body: %s", g_requests[0].body);
 
     vm_device_tokens_free(&tokens);
-}
-
-static void test_refresh_and_mint_carry_sdk_token(void) {
-    vm_device_tokens_t tokens = {0};
-    vm_api_set_sdk_token("mgst_token");
-    fake_queue_response(200, "{\"access_token\":\"new-a\",\"refresh_token\":\"new-r\"}");
-    int rc = vm_api_refresh_device_token("old-a", "old-r", "link-123", &tokens, NULL);
-    CHECK(rc == 0, "refresh rc=%d", rc);
-    CHECK(strcmp(g_requests[0].body,
-                 "{\"device_id\":\"link-123\",\"sdk_token\":\"mgst_token\"}") == 0,
-          "unexpected refresh body: %s", g_requests[0].body);
-    vm_device_tokens_free(&tokens);
-
-    fake_reset();
-    fake_queue_response(200, "{\"access_token\":\"new-a\",\"refresh_token\":\"new-r\"}");
-    rc = vm_api_mint_device_token("token", "link-123", &tokens);
-    CHECK(rc == 0, "mint rc=%d", rc);
-    CHECK(strcmp(g_requests[0].body,
-                 "{\"device_id\":\"link-123\",\"sdk_token\":\"mgst_token\"}") == 0,
-          "unexpected mint body: %s", g_requests[0].body);
-    vm_device_tokens_free(&tokens);
-    vm_api_set_sdk_token(NULL);
 }
 
 static void test_refresh_falls_back_to_refresh_token_on_401(void) {
@@ -636,11 +614,11 @@ static void test_set_base_url_changes_fetch_target(void) {
         const char *override;
         const char *base;
     } cases[] = {
-        {"https://api.muse.ai", "https://api.muse.ai"},
+        {"https://mute.example.com", "https://mute.example.com"},
         {"https://custom-api.example.com", "https://custom-api.example.com"},
-        {NULL, "https://api.muse.ai"},
+        {NULL, "https://mute.example.com"},
         {"https://custom-api.example.com", "https://custom-api.example.com"},
-        {"", "https://api.muse.ai"},
+        {"", "https://mute.example.com"},
     };
     const char *paths[] = {
         "/fetch_vms", "/device_token/mint",
@@ -698,19 +676,19 @@ static void test_set_base_url_changes_fetch_target(void) {
         }
     }
 
-    // Muse voice boards have their own account client, with no base override.
+    // Mute voice boards have their own account client, with no base override.
     fake_reset();
     fake_queue_response(200, vm_body);
-    muse_hatch_vm_t vm = {0};
-    CHECK(muse_hatch_api_find_vm("access", "", &vm) == 0,
-          "Muse account lookup failed");
-    CHECK(g_request_count == 1, "Muse account request count=%d", g_request_count);
+    mute_hatch_vm_t vm = {0};
+    CHECK(mute_hatch_api_find_vm("access", "", &vm) == 0,
+          "Mute account lookup failed");
+    CHECK(g_request_count == 1, "Mute account request count=%d", g_request_count);
     expect_url(&g_requests[0], "/fetch_vms");
-    CHECK(g_requests[0].method == HTTP_METHOD_GET, "Muse account lookup should GET");
+    CHECK(g_requests[0].method == HTTP_METHOD_GET, "Mute account lookup should GET");
     CHECK(strcmp(g_requests[0].authorization, "Bearer access") == 0,
-          "Muse account authorization mismatch");
+          "Mute account authorization mismatch");
     CHECK(strcmp(vm.vm_id, "vm-one") == 0 && strcmp(vm.vm_token, "t") == 0,
-          "Muse account VM credential mismatch");
+          "Mute account VM credential mismatch");
     free(vm.vm_token);
 }
 
@@ -861,7 +839,6 @@ int main(void) {
     RUN_TEST(test_mint_rejects_malformed_or_partial_token_responses);
     RUN_TEST(test_mint_auth_failure_is_not_retried);
     RUN_TEST(test_refresh_success_via_access_token);
-    RUN_TEST(test_refresh_and_mint_carry_sdk_token);
     RUN_TEST(test_refresh_falls_back_to_refresh_token_on_401);
     RUN_TEST(test_refresh_does_not_fallback_on_403);
     RUN_TEST(test_refresh_no_fallback_without_refresh_token);

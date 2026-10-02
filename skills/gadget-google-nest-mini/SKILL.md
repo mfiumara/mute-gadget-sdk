@@ -1,7 +1,7 @@
 ---
 name: gadget-google-nest-mini
 description: >-
-  Play audio and control playback or volume on Google Nest Mini or Home Mini through Muse Home
+  Play audio and control playback or volume on Google Nest Mini or Home Mini through Mute Home
   Link. Use the shared Google Cast skill when the receiver is available; distinguish the
   individual speaker from an existing group.
 ---

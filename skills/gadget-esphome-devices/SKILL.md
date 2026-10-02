@@ -1,7 +1,7 @@
 ---
 name: gadget-esphome-devices
 description: >-
-  Read and control entities exposed by already-installed ESPHome firmware through Muse Home
+  Read and control entities exposed by already-installed ESPHome firmware through Mute Home
   Link. Use with an enabled native TCP or HTTP API and its configured credentials; prefer the
   ratgdo skill for ratgdo garage controllers.
 ---

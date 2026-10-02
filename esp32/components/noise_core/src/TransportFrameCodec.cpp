@@ -24,7 +24,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 namespace {
 
 constexpr uint32_t kChunkIdField = 1;
@@ -669,4 +669,4 @@ InboundFrameResult OrderedTransportFramer::PoisonInbound(
   return InboundResult(InboundFrameStatus::Violation, status, 0);
 }
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

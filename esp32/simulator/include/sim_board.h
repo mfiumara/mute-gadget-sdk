@@ -17,8 +17,8 @@
 #pragma once
 
 #include "lvgl.h"
-#include "muse_board.h"
+#include "mute_board.h"
 
 /* The desktop board profile and the SDL display it creates. */
-const muse_board_t *sim_board_get(void);
+const mute_board_t *sim_board_get(void);
 lv_display_t *sim_board_display(void);

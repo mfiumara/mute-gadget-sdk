@@ -2,7 +2,7 @@
 name: gadget-philips-hue-bridges
 description: >-
   Control lights, brightness, and existing room, zone, or scene actions through a Philips Hue
-  CLIP v2 bridge using Muse Home Link. Use a local application key or normal physical-button
+  CLIP v2 bridge using Mute Home Link. Use a local application key or normal physical-button
   pairing; excludes legacy BSB001.
 ---
 

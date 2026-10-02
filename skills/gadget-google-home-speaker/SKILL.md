@@ -1,7 +1,7 @@
 ---
 name: gadget-google-home-speaker
 description: >-
-  Play audio and control playback or volume on the original Google Home speaker through Muse
+  Play audio and control playback or volume on the original Google Home speaker through Mute
   Home Link. Use its available Cast receiver and the shared Google Cast skill; not for other
   Nest models or assistant routines.
 ---

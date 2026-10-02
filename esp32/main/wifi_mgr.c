@@ -116,7 +116,7 @@ static void schedule_reconnect(void) {
     }
 }
 
-#if CONFIG_MUSE_ENABLED
+#if CONFIG_MUTE_ENABLED
 // A saved channel only says where the last AP was: on a mesh, the node found
 // there can be a room too far, and a join to it limps along at -80 dBm. The
 // fast scan skips APs weaker than this and goes on to the other channels.
@@ -271,8 +271,8 @@ bool wifi_mgr_connect(const char *ssid, const char *password, int timeout_ms) {
     }
     wc.sta.threshold.authmode = WIFI_AUTH_OPEN;
     wc.sta.pmf_cfg.capable = true;
-#if CONFIG_MUSE_ENABLED
-    // Beacons between wakes in max modem sleep (Muse asleep on battery):
+#if CONFIG_MUTE_ENABLED
+    // Beacons between wakes in max modem sleep (Mute asleep on battery):
     // about 1 s at the usual 102.4 ms interval, a third of the wakes of the
     // default 3. Min modem sleep (awake between turns) wakes every DTIM.
     wc.sta.listen_interval = 10;
@@ -302,7 +302,7 @@ bool wifi_mgr_connect(const char *ssid, const char *password, int timeout_ms) {
                              && strcmp(s_channel_hint.ssid, ssid) == 0;
     if (have_channel_hint) {
         wc.sta.channel = s_channel_hint.channel;
-#if CONFIG_MUSE_ENABLED
+#if CONFIG_MUTE_ENABLED
         wc.sta.threshold.rssi = FAST_SCAN_MIN_RSSI;
 #endif
         ESP_LOGI(TAG, "starting fast scan on saved channel %u",

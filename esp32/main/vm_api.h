@@ -21,7 +21,8 @@
 #define VM_API_MAX_VMS 8
 #define VM_API_ERR_FAILED -1
 #define VM_API_ERR_AUTH   -2
-#define VM_API_DEFAULT_BASE_URL "https://api.muse.ai"
+// Needs sdkconfig.h included first.
+#define VM_API_DEFAULT_BASE_URL "https://" CONFIG_MUTE_SERVER_HOST
 
 typedef struct {
     char *vm_url;
@@ -46,8 +47,6 @@ typedef enum {
 // as-is. NULL or empty restores the compiled default.
 void vm_api_set_base_url(const char *url);
 
-// SDK token sent with device-token mint and refresh. NULL or empty sends none.
-void vm_api_set_sdk_token(const char *sdk_token);
 
 // Fetch VMs using the provided device access token.
 // Writes up to max entries to out and returns the count, VM_API_ERR_AUTH

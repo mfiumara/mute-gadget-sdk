@@ -1,7 +1,7 @@
 ---
 name: gadget-google-pixel-tablet
 description: >-
-  Play supported Cast media and control playback or volume on Google Pixel Tablet through Muse
+  Play supported Cast media and control playback or volume on Google Pixel Tablet through Mute
   Home Link. Use the shared Google Cast skill only while the tablet exposes its receiver in
   supported docked, locked Hub Mode.
 ---

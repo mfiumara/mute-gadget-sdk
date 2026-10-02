@@ -18,7 +18,7 @@
 
 #include <memory>
 #include <xplat/noise/core/ClientSession.h>
-using namespace musegadgets::noise::core;
+using namespace mutegadgets::noise::core;
 
 // Deterministic crypto boundary for pressure/failure injection. The real
 // ClientSession, transport, framing, service codec and control sender run below.

@@ -1,7 +1,7 @@
 ---
 name: gadget-google-nest-audio
 description: >-
-  Play audio and control playback or volume on Google Nest Audio through Muse Home Link. Use
+  Play audio and control playback or volume on Google Nest Audio through Mute Home Link. Use
   the shared Google Cast skill for an available receiver or existing group; not for creating
   stereo pairs or reconfiguring groups.
 ---

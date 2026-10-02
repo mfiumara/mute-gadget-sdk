@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Default target: ESP32-C5 (RISC-V, Wi-Fi 6), the chip in Muse Home Link.
+# Default target: ESP32-C5 (RISC-V, Wi-Fi 6), the chip in Mute Home Link.
 # Board overlays in devices/ select other targets.
 CONFIG_IDF_TARGET="esp32c5"
 CONFIG_ESP32C5_REV_MAX_FULL=199
@@ -43,7 +43,7 @@ CONFIG_CJSON_NESTING_LIMIT=16
 # cache misses go straight to SPI flash, so bus width and clock matter.
 CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
 CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
-# Flash: 8 MB (Muse Home Link default). Works unchanged on 16 MB boards
+# Flash: 8 MB (Mute Home Link default). Works unchanged on 16 MB boards
 # (upper 8 MB unused).
 CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
 CONFIG_ESPTOOLPY_FLASHSIZE="8MB"

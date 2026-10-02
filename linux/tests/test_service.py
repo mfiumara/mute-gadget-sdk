@@ -19,15 +19,11 @@ import json
 import os
 import stat
 import tempfile
-import time
 from pathlib import Path
 
-import pytest
-
-from musegadget import muse_api
-from musegadget.executor import Account, Executor
-from musegadget.identity import Identity
-from musegadget.service import Backoff, Service
+from mutegadget.executor import Account, Executor
+from mutegadget.identity import Identity
+from mutegadget.service import Backoff, Service
 
 
 class FakeSession:
@@ -93,7 +89,7 @@ def test_local_message_can_target_a_side_chat():
 def test_local_message_fails_cleanly_when_not_connected():
     async def check(service, path):
         reply = await ask(path, b'{"message": "hi"}\n')
-        assert reply == {"ok": False, "error": "not connected to the Muse"}
+        assert reply == {"ok": False, "error": "not connected to the Mute"}
 
     run_with_socket(check)
 
@@ -115,55 +111,3 @@ def test_backoff_doubles_to_a_ceiling_and_honours_the_floor():
     backoff.reset()
     backoff.floor = 15
     assert backoff.next_delay() == 15
-
-
-def refresh_with(service_kwargs, pairing, calls=1):
-    """Run _maybe_refresh `calls` times on a Service built inside the loop (Python 3.9)."""
-    async def scenario():
-        service = Service(identity=Identity("02:00:00:00:00:01"),
-                          executor=Executor(Account.current()), **service_kwargs)
-        result = pairing
-        for _ in range(calls):
-            result = await service._maybe_refresh(result)
-        return result
-    return asyncio.run(scenario())
-
-
-def fresh_pairing() -> dict:
-    return {"access_token": "a", "refresh_token": "r", "access_token_saved_at": int(time.time())}
-
-
-def test_a_start_with_an_sdk_token_refreshes_once_to_report_it(tmp_path, monkeypatch):
-    monkeypatch.setenv("MUSEGADGET_STATE_DIR", str(tmp_path))
-    calls = []
-
-    def refresh(refresh_token, node_id, base_url, sdk_token):
-        calls.append(sdk_token)
-        return {"access_token": "new-a", "refresh_token": "new-r"}, 200
-
-    monkeypatch.setattr("musegadget.service.muse_api.refresh_device_token", refresh)
-    pairing = refresh_with({"sdk_token": "mgst_token"}, fresh_pairing(), calls=2)
-    assert calls == ["mgst_token"]
-    assert pairing["access_token"] == "new-a"
-
-
-def test_a_start_without_an_sdk_token_keeps_a_fresh_token(monkeypatch):
-    monkeypatch.setattr("musegadget.service.muse_api.refresh_device_token",
-                        lambda *args: pytest.fail("unexpected refresh"))
-    fresh = fresh_pairing()
-    assert refresh_with({}, fresh) is fresh
-
-
-def test_a_rejected_sdk_token_report_keeps_the_pairing(tmp_path, monkeypatch):
-    monkeypatch.setenv("MUSEGADGET_STATE_DIR", str(tmp_path))
-    monkeypatch.setattr("musegadget.service.muse_api.refresh_device_token",
-                        lambda *args: (None, 401))
-    fresh = fresh_pairing()
-    (tmp_path / "pairing.json").write_text(json.dumps(fresh))
-    assert refresh_with({"sdk_token": "mgst_token"}, fresh) is fresh
-    assert (tmp_path / "pairing.json").exists()
-
-
-def test_api_root_uses_api_url_v2_or_the_muse_api():
-    assert muse_api.api_root("https://api.example/") == "https://api.example"
-    assert muse_api.api_root() == "https://api.muse.ai"

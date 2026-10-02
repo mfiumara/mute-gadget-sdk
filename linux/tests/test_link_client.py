@@ -20,14 +20,14 @@ import struct
 
 import pytest
 
-from musegadget.link_client import (
+from mutegadget.link_client import (
     DeviceDescription, LinkSession, MessageDecoder, Outcome, encode_message, noise_url,
 )
-from musegadget.noise import (
+from mutegadget.noise import (
     ApplicationResponse, BodyChunk, NoiseFrameDecoder, NoiseXXResponder, ServiceFrame,
     encode_noise_frames,
 )
-from musegadget.noise.transport import decode_request_envelope, encode_response_envelope
+from mutegadget.noise.transport import decode_request_envelope, encode_response_envelope
 
 DEVICE = DeviceDescription(
     node_id="homelink-abcdef", display_name="pi", version="0.1.0",
@@ -55,7 +55,7 @@ class Pipe:
 
 
 class FakeVm:
-    """Just enough of the Muse VM: Noise responder plus the control stream."""
+    """Just enough of the Mute VM: Noise responder plus the control stream."""
 
     def __init__(self, ws: Pipe) -> None:
         self.ws = ws
@@ -112,7 +112,7 @@ def make_session(run_command, connect_log: list):
         return device_ws
 
     session = LinkSession(
-        noise_host="gw.example", vm_id="vm 1&x", vm_auth_token="tok",
+        server="https://gw.example", vm_id="vm 1&x", vm_auth_token="tok",
         device=DEVICE, run_command=run_command, connect=connect,
     )
     return session, FakeVm(vm_ws)
@@ -200,7 +200,8 @@ def test_decoder_rejects_oversize_messages():
 
 
 def test_vm_id_is_escaped_like_encode_uri_component():
-    assert noise_url("h", "a-b_c.d!~*'()?&=") == "wss://h/v1/noise?vm_id=a-b_c.d!~*'()%3F%26%3D"
+    assert noise_url("https://h", "a-b_c.d!~*'()?&=") == "wss://h/v1/noise?vm_id=a-b_c.d!~*'()%3F%26%3D"
+    assert noise_url("http://h:8080/", "v") == "ws://h:8080/v1/noise?vm_id=v"
 
 
 def test_send_chat_posts_a_device_attributed_message_on_the_same_session():

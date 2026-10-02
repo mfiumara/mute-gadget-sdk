@@ -16,7 +16,7 @@ limitations under the License.
 
 # minimp3
 
-A small MP3 decoder by lieff, used to play the Muse's spoken replies.
+A small MP3 decoder by lieff, used to play the Mute's spoken replies.
 
 | | |
 |---|---|

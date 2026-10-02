@@ -2,7 +2,7 @@
 name: gadget-google-cast
 description: >-
   Read receiver/media status and control playback, volume, or existing speaker groups through
-  Muse Home Link. Use when current discovery confirms a Google Cast receiver; apply any
+  Mute Home Link. Use when current discovery confirms a Google Cast receiver; apply any
   matching device skill's model-specific limits.
 ---
 

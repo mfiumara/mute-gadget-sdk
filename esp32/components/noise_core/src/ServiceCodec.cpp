@@ -22,7 +22,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 namespace {
 
 constexpr int64_t kReservedStreamId = 0;
@@ -1625,4 +1625,4 @@ Status ValidateClientEnvelope(ConstByteSpan bytes) noexcept {
   return ValidateClientEnvelopeDetailed(bytes).status;
 }
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

@@ -2,7 +2,7 @@
 name: gadget-hp-color-laserjet-pro-m254dw
 description: >-
   Print documents and inspect printer or job status on HP Color LaserJet Pro M254dw through
-  Muse Home Link. Use its advertised IPP/IPPS service and supported document formats.
+  Mute Home Link. Use its advertised IPP/IPPS service and supported document formats.
 ---
 
 # HP Color LaserJet Pro M254dw

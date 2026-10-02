@@ -31,9 +31,9 @@
 #include "button.h"
 #include "config_store.h"
 #include "led_status.h"
-#include "muse_chat.h"
+#include "mute_chat.h"
 #include "voice_board.h"
-#include "voice_muse_chat.h"
+#include "voice_mute_chat.h"
 #include "voice_player.h"
 
 static const char *TAG = "link.voice";
@@ -126,7 +126,7 @@ static size_t record(void) {
         int peak = 0;
         size_t got = voice_board_mic_read(chunk, CAPTURE_CHUNK, &peak);
         if (!got) break;
-        muse_hatch_turn_audio(chunk, got);
+        mute_hatch_turn_audio(chunk, got);
         samples += got;
         led_status_set_level(peak / 12000.0f);
     }
@@ -151,24 +151,24 @@ static bool reply(void) {
     voice_player_begin();
     for (;;) {
         if (pressed_again(0)) {
-            muse_hatch_turn_cancel();
+            mute_hatch_turn_cancel();
             voice_player_stop();
             return true;
         }
-        muse_hatch_ev_t ev;
-        while ((ev = muse_hatch_turn_event(text, sizeof(text))) != MUSE_HATCH_EV_NONE) {
+        mute_hatch_ev_t ev;
+        while ((ev = mute_hatch_turn_event(text, sizeof(text))) != MUTE_HATCH_EV_NONE) {
             switch (ev) {
-            case MUSE_HATCH_EV_HEARD:
+            case MUTE_HATCH_EV_HEARD:
                 ESP_LOGI(TAG, "heard: %s", text);
                 led_status_set_voice(LED_VOICE_THINKING);
                 break;
-            case MUSE_HATCH_EV_REPLY:
+            case MUTE_HATCH_EV_REPLY:
                 if (!voice_player_started()) led_status_set_voice(LED_VOICE_BUFFERING);
                 break;
-            case MUSE_HATCH_EV_DONE:
+            case MUTE_HATCH_EV_DONE:
                 done = true;
                 break;
-            case MUSE_HATCH_EV_ERROR:
+            case MUTE_HATCH_EV_ERROR:
                 voice_player_stop();
                 return fail(text);
             default:
@@ -176,7 +176,7 @@ static bool reply(void) {
             }
         }
         // After DONE the reply's audio is all decoded; drain what's left.
-        size_t n = muse_hatch_turn_read(pcm, REPLY_CHUNK, done ? 0 : 20);
+        size_t n = mute_hatch_turn_read(pcm, REPLY_CHUNK, done ? 0 : 20);
         if (n) {
             voice_player_write(pcm, n);
             played += n;
@@ -204,10 +204,10 @@ static bool run_turn(void) {
     voice_player_stop();
     led_status_set_level(0);
     led_status_set_voice(LED_VOICE_LISTENING);
-    muse_hatch_turn_begin();
+    mute_hatch_turn_begin();
     size_t samples = record();
     if (samples < VOICE_MIC_RATE * CAPTURE_MIN_MS / 1000) {
-        muse_hatch_turn_cancel();
+        mute_hatch_turn_cancel();
         if (!samples) return fail("microphone unavailable");
         ESP_LOGI(TAG, "press too short");
         led_status_set_voice(LED_VOICE_IDLE);
@@ -215,7 +215,7 @@ static bool run_turn(void) {
     }
     ESP_LOGI(TAG, "recorded %.1fs", (double)samples / VOICE_MIC_RATE);
     led_status_set_voice(LED_VOICE_TRANSCRIBING);
-    muse_hatch_turn_end();
+    mute_hatch_turn_end();
     return reply();
 }
 
@@ -225,7 +225,7 @@ static bool on_press(bool pressed) {
     if (pressed) {
         if (!atomic_load(&s_ready) || voice_board_muted()) return false;
         voice_hatch_refresh();
-        if (!muse_hatch_ready()) return false;
+        if (!mute_hatch_ready()) return false;
     }
     voice_evt_t evt = pressed ? EVT_PRESS : EVT_RELEASE;
     xQueueSend(s_events, &evt, 0);
@@ -260,7 +260,7 @@ void voice_init(void) {
     }
     atomic_store(&s_volume, load_volume());
     voice_hatch_refresh();
-    muse_hatch_start();
+    mute_hatch_start();
     // The stack is in PSRAM, so the task must not touch flash (NVS): pairing
     // needs an 8 KB internal block for its TLS task.
     if (xTaskCreateWithCaps(voice_task, "voice", 4096, NULL, 4, NULL, MALLOC_CAP_SPIRAM) != pdPASS) {

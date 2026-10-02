@@ -2,7 +2,7 @@
 name: gadget-moonraker-3d-printers
 description: >-
   Read 3D-printer status and manage requested print jobs through an existing Moonraker service
-  using Muse Home Link. Use for a commissioned printer and existing print files; not arbitrary
+  using Mute Home Link. Use for a commissioned printer and existing print files; not arbitrary
   G-code, firmware setup, or configuration changes.
 ---
 

@@ -43,7 +43,7 @@ typedef void (*image_fetch_done_cb)(const image_fetch_result_t *result, void *us
 
 // `row` when the command gives none: boards with the full UI centre a JPEG, and the display
 // backends draw from the top.
-#if CONFIG_HOMEHUB_LED_BACKEND_MUSE
+#if CONFIG_HOMEHUB_LED_BACKEND_MUTE
 #define IMAGE_FETCH_DEFAULT_ROW IMAGE_FETCH_CENTRE
 #else
 #define IMAGE_FETCH_DEFAULT_ROW 0

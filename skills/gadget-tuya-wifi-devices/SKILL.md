@@ -2,7 +2,7 @@
 name: gadget-tuya-wifi-devices
 description: >-
   Read status and control mapped capabilities on compatible Tuya local-TCP devices through
-  Muse Home Link. Use only with a known protocol version, device ID, local key, and exact
+  Mute Home Link. Use only with a known protocol version, device ID, local key, and exact
   datapoint schema; prefer a matching device-specific skill.
 ---
 

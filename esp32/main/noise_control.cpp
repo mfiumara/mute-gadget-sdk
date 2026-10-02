@@ -41,9 +41,9 @@ extern "C" {
 #include "cJSON.h"
 #include "led_status.h"
 #include "ota.h"
-#if CONFIG_MUSE_ENABLED
+#if CONFIG_MUTE_ENABLED
 extern "C" {
-#include "muse_state.h"
+#include "mute_state.h"
 }
 #endif
 }
@@ -52,11 +52,11 @@ extern "C" {
 #include <xplat/noise/core/PsaCryptoBackend.h>
 #include <xplat/noise/core/ServiceCodec.h>
 
-using namespace musegadgets::noise::core;
+using namespace mutegadgets::noise::core;
 
 static const char *TAG = "link.noise_ctrl";
 
-#define NOISE_DEFAULT_HOST "hatch.metaaivm.com"
+#define NOISE_DEFAULT_HOST CONFIG_MUTE_SERVER_HOST
 static char s_noise_host[256] = NOISE_DEFAULT_HOST;
 #define NOISE_PATH       "/v1/noise"
 #define NOISE_PORT       443
@@ -84,11 +84,11 @@ static char s_noise_host[256] = NOISE_DEFAULT_HOST;
 #define STABLE_SESSION_MS         30000
 #define VM_REFRESH_FAILURES       3
 
-// On a board with the full UI but no PSRAM or tunnel, only control JSON and Muse's
+// On a board with the full UI but no PSRAM or tunnel, only control JSON and Mute's
 // voice notes and chat history cross this session, and the whole session has
 // to fit in what internal RAM Wi-Fi, TLS and the display leave, so the buffers
 // below are smaller.
-#if CONFIG_MUSE_ENABLED && !CONFIG_SPIRAM && !CONFIG_HOMEHUB_TUNNEL
+#if CONFIG_MUTE_ENABLED && !CONFIG_SPIRAM && !CONFIG_HOMEHUB_TUNNEL
 #define SMALL_CONTROL_SESSION 1
 #else
 #define SMALL_CONTROL_SESSION 0
@@ -97,7 +97,7 @@ static char s_noise_host[256] = NOISE_DEFAULT_HOST;
 // Max inbound service frame scratch. Daemon control responses are modest JSON,
 // but the tunnel stream (multiplexed on this session) carries ~8 KB IP-packet
 // batches, so scratch must fit a full batch plus ServiceFrame/envelope overhead.
-// On the small session Muse's chat history rows (noise_ctrl_req_*) arrive here
+// On the small session Mute's chat history rows (noise_ctrl_req_*) arrive here
 // too: ~2 KB plus three copies of the reply text, so allow ~10 KB.
 #define SVC_FRAME_SCRATCH (SMALL_CONTROL_SESSION ? 10240 : 12288)
 
@@ -149,8 +149,8 @@ static bool s_heartbeat_registered = false;
 static TaskHandle_t s_task = nullptr;
 
 #define NOISE_CTRL_STACK 12288
-#if CONFIG_MUSE_ENABLED && CONFIG_SPIRAM
-// Muse's display and audio leave internal RAM fragmented by the time a session
+#if CONFIG_MUTE_ENABLED && CONFIG_SPIRAM
+// Mute's display and audio leave internal RAM fragmented by the time a session
 // starts, often without a 12 KB block for this stack. Hold one from boot and
 // hand it over just before the task is created. The idle task frees a
 // deleted session task's stack, so let it run before either step.
@@ -888,8 +888,8 @@ static bool tunnel_send_body(void *vctx, const uint8_t *data, size_t len) {
 
 // ---- Extra daemon requests (noise_ctrl_req_*) --------------------------------
 
-// Only Muse opens these; Link-only gateways get the empty stubs below.
-#if CONFIG_MUSE_ENABLED
+// Only Mute opens these; Link-only gateways get the empty stubs below.
+#if CONFIG_MUTE_ENABLED
 
 // Stream ids from here up belong to these requests; lower ids are Link's own.
 #define REQ_STREAM_BASE 16
@@ -1088,7 +1088,7 @@ static void req_init(void) {
 static void req_init(void) {}
 static void req_end_all(void) {}
 static bool req_on_frame(const DecodedServiceFrame &) { return false; }
-#endif  // CONFIG_MUSE_ENABLED
+#endif  // CONFIG_MUTE_ENABLED
 
 // ---- Agent identity ----------------------------------------------------------
 
@@ -1263,9 +1263,9 @@ static char *build_register_json(void) {
                  "device if needed and centred across, or raw RGB565 (high "
                  "byte first, %d bytes per row).%s Plain http:// uses the least "
                  "device memory. Replies when the image is drawn. Hides the "
-#if CONFIG_HOMEHUB_LED_BACKEND_MUSE
+#if CONFIG_HOMEHUB_LED_BACKEND_MUTE
                  "avatar until display.show_animation, a tap or the talk button. "
-                 "Some Muse screens are round and cut off the corners, so keep "
+                 "Some Mute screens are round and cut off the corners, so keep "
                  "the subject in the middle. A JPEG as large as the screen "
                  "looks best.",
 #else
@@ -1284,7 +1284,7 @@ static char *build_register_json(void) {
                         "whole screen rather than several parts. The image "
                         "stays on screen without power."
                       : ""
-#if !CONFIG_HOMEHUB_LED_BACKEND_MUSE
+#if !CONFIG_HOMEHUB_LED_BACKEND_MUTE
                  , mono ? "status screen" : "animation"
 #endif
                  );
@@ -1295,7 +1295,7 @@ static char *build_register_json(void) {
         cJSON *top_param = cJSON_CreateObject();
         cJSON_AddStringToObject(top_param, "type", "integer");
         cJSON_AddStringToObject(top_param, "description",
-#if CONFIG_HOMEHUB_LED_BACKEND_MUSE
+#if CONFIG_HOMEHUB_LED_BACKEND_MUTE
                                 "Row to draw the top of the image at; by default a JPEG "
                                 "is centred down the screen and raw data starts at 0.");
 #else
@@ -1337,7 +1337,7 @@ static char *build_register_json(void) {
                 nullptr, nullptr);
 #endif
 
-#if CONFIG_MUSE_WATCHER_CAMERA
+#if CONFIG_MUTE_WATCHER_CAMERA
     add_command(commands, "camera.capture",
                 "Capture one still JPEG frame from the SenseCAP Watcher camera. "
                 "The frame is returned as base64 only when this command is explicitly invoked.",
@@ -1473,8 +1473,8 @@ static void send_device_health(
                             heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
     cJSON *battery_pct = nullptr, *battery_mv = nullptr;
     cJSON *charging = nullptr, *usb_power = nullptr;
-#if CONFIG_MUSE_ENABLED
-    muse_power_t power = muse_state_power();
+#if CONFIG_MUTE_ENABLED
+    mute_power_t power = mute_state_power();
     if (power.battery_pct >= 0) {
         battery_pct = cJSON_CreateNumber(power.battery_pct);
         if (power.battery_mv > 0) {
@@ -2000,7 +2000,7 @@ static session_result_t run_session(stack_monitor_t *stack) {
                 auto &frame = inbound.frame;
                 bool is_tunnel = (frame.stream_id == TUNNEL_STREAM_ID);
                 if (req_on_frame(frame)) {
-                    // One of Muse's extra requests.
+                    // One of Mute's extra requests.
                 } else if (frame.stream_id == IDENTITY_STREAM_ID) {
                     identity_on_frame(identity, frame);
                 } else if (frame.kind == ServiceFrameKind::BodyChunk) {
@@ -2124,7 +2124,7 @@ static session_result_t run_session(stack_monitor_t *stack) {
             }
         }
 
-#if CONFIG_MUSE_ENABLED
+#if CONFIG_MUTE_ENABLED
         {
             bool sent = false;
             if (!req_pump_tx(tls, session, svc_scratch, env_scratch, ws_buf, &sent)) {
@@ -2369,7 +2369,7 @@ extern "C" void noise_ctrl_send_command_result(
     queue_result(session_generation, request_id, result);
 }
 
-#if CONFIG_MUSE_ENABLED
+#if CONFIG_MUTE_ENABLED
 extern "C" int64_t noise_ctrl_req_open(const char *verb, const char *path,
                                        const char *const *headers, bool end_body,
                                        noise_ctrl_req_cb cb, void *ctx) {
@@ -2432,4 +2432,4 @@ extern "C" void noise_ctrl_req_cancel(int64_t id) {
     req_op op = {req_op_kind::Cancel, false, id, nullptr, 0, nullptr, nullptr};
     req_put(op, pdMS_TO_TICKS(100));
 }
-#endif  // CONFIG_MUSE_ENABLED
+#endif  // CONFIG_MUTE_ENABLED

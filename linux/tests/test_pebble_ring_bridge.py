@@ -61,7 +61,7 @@ def test_token_sources(headers, fields):
 @pytest.fixture
 def server(monkeypatch):
     sent = []
-    monkeypatch.setattr(bridge, "send_user_msg", lambda text: (sent.append(text) or True, "Sent to your Muse."))
+    monkeypatch.setattr(bridge, "send_user_msg", lambda text: (sent.append(text) or True, "Sent to your Mute."))
     bridge.Handler.secret = "s3"
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), bridge.Handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()

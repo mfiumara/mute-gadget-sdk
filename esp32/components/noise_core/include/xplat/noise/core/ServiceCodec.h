@@ -23,7 +23,7 @@
 #include <xplat/noise/core/Status.h>
 #include <xplat/noise/core/StringView.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 enum class ServiceType : int32_t {
   Daemon = 0,
@@ -186,4 +186,4 @@ EncodeResetFrame(int64_t streamId, ResetView reset, ByteSpan out) noexcept;
 
 [[nodiscard]] Status ValidateClientEnvelope(ConstByteSpan bytes) noexcept;
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

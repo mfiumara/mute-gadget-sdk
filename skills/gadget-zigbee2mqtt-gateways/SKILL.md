@@ -2,7 +2,7 @@
 name: gadget-zigbee2mqtt-gateways
 description: >-
   Read or control supported child-device capabilities through an existing Zigbee2MQTT gateway
-  using Muse Home Link. Use its authorized MQTT broker, configured base topic, and actual
+  using Mute Home Link. Use its authorized MQTT broker, configured base topic, and actual
   exposed properties; not gateway setup or device pairing.
 ---
 

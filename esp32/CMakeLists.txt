@@ -14,5 +14,5 @@
 
 cmake_minimum_required(VERSION 3.16)
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/project.cmake")
-project(muse-gadget)
+project(mute-gadget)
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/validate_config.cmake")

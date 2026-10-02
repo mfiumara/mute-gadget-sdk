@@ -178,7 +178,7 @@ int mbedtls_base64_encode(unsigned char *dst, size_t dlen, size_t *olen,
     return 0;
 }
 
-const char *identity_node_id(void) { return "musegadget-a1b2c3"; }
+const char *identity_node_id(void) { return "mutegadget-a1b2c3"; }
 
 bool wifi_mgr_is_connected(void) { return true; }
 

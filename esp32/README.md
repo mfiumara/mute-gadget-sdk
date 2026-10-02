@@ -17,11 +17,11 @@ limitations under the License.
 # ESP32 Device SDK
 
 Flash this open source firmware onto any ESP32-compatible board to connect
-Muse to your home Wi-Fi. On boards with the home-network tunnel, Muse can reach
+it to your Mute server. On boards with the home-network tunnel, Mute can reach
 the devices you already own and anything you build with a local HTTP API.
 
 Then hack on it: add a display, a button, or support for a board we haven't
-tried yet, and build your own Muse gadget.
+tried yet, and build your own Mute gadget.
 
 > **Note:** Built by hackers, for hackers, just for fun. Flashing custom
 > firmware can brick boards and void warranties. Proceed at your own risk!
@@ -33,50 +33,35 @@ tried yet, and build your own Muse gadget.
   that already work are listed [below](#boards).
 - **A USB cable that carries data**, not just power.
 - **A computer** running macOS or Linux.
-- **An SDK token** from [gadgets.muse.ai](https://gadgets.muse.ai/settings/sdk-tokens)
-  (Account > SDK tokens). Every gadget needs one to pair, including ones you
-  build for yourself. Read the [Gadget SDK Terms](https://gadgets.muse.ai/sdk-terms)
-  before you use it.
-- **The Muse app** on your phone, to set up the device once it's flashed.
+- **A running [Mute server](../server)** reachable over HTTPS with a
+  public certificate, and its `MUTE_DEVICE_TOKEN`.
 
-## Get going with Muse Code
+## Get going with a coding agent
 
-The fastest way to build is to let [Muse Code](https://developer.meta.com/ai/lp/muse-code/)
-do it. Install it:
+Plug in your board and start your coding agent (Claude Code, Codex, or any
+agent that reads `AGENTS.md`) from this directory:
 
 ```sh
-curl -fsSL https://dev.meta.ai/install.sh | sh
+git clone https://github.com/mfiumara/mute-gadget-sdk
+cd mute-gadget-sdk/esp32
 ```
 
-Then plug in your board, and start Muse Code from this directory:
-
-```sh
-git clone https://github.com/facebookincubator/muse-gadget-sdk
-cd muse-gadget-sdk/esp32
-muse --disable-sandbox
-```
-
-The first time, Muse Code asks you to trust the workspace and sign in.
-`--disable-sandbox` lets it reach your board's USB serial port and download
-the ESP-IDF toolchain. You still approve each command before it runs. Then ask:
+Then ask:
 
 > Build this firmware for my ESP32-C5 DevKitC-1 and flash it.
 
-Muse Code reads [`AGENTS.md`](AGENTS.md), which has everything needed to set up
-the toolchain, build for your board, flash it, and read its logs. From there,
-keep going:
+The agent reads [`AGENTS.md`](AGENTS.md), which has everything needed to set
+up the toolchain, build for your board, flash it, and read its logs. From
+there, keep going:
 
-> Watch the serial log and tell me when it's ready to pair.
-
-> I have a Waveshare ESP32-S3 AMOLED board. Build the UI for it.
+> Watch the serial log and tell me when it's connected.
 
 > Add support for my board. It's an ESP32-S3 with 16 MB flash, a button on
 > GPIO 0 and no PSRAM.
 
 > Make the status light half as bright.
 
-Other coding agents work too. Any agent that reads `AGENTS.md` can build and
-flash from this repository. Flashing needs access to your board's USB serial
+Flashing needs access to your board's USB serial
 port, so if your agent runs in a sandbox, let it run the flash and monitor
 commands outside the sandbox.
 
@@ -102,15 +87,17 @@ Run the last line in every new terminal you build from.
 
 ### 2. Build
 
-From this directory, set your SDK token, then build:
+From this directory, set your server, its device token and your Wi-Fi, then
+build:
 
 ```sh
-idf.py menuconfig   # ESP32 Device SDK > Muse Gadgets SDK token
+idf.py menuconfig   # ESP32 Device SDK > Mute server host, Mute device token,
+                    # WiFi SSID override, WiFi password override
 idf.py build
 ```
 
 This builds for the ESP32-C5 DevKitC-1. The firmware lands in
-`build/muse-gadget.bin`.
+`build/mute-gadget.bin`.
 
 ### 3. Flash
 
@@ -125,34 +112,30 @@ connected ports; on Linux, look for `/dev/ttyACM*` or `/dev/ttyUSB*`. The
 monitor shows the device's log; press `Ctrl-]` to quit. If flashing can't
 connect, hold **BOOT**, tap **RESET**, release **BOOT**, and try again.
 
-Reflashing keeps your pairing and Wi-Fi settings. To start completely fresh,
+Reflashing keeps the saved settings. To start completely fresh,
 run `idf.py -p PORT erase-flash` first.
 
-### 4. Set it up with Muse
+### 4. Connect
 
-Once flashed, the status light breathes **orange**: the device is ready for
-setup. In the Muse app, turn on **Settings > Devices > Developer mode**, then
-add the device (**Settings > Devices > Add Device**, the **+** icon in the top
-right). It shows up as `MuseGadget-XXXXXX`. When the light breathes **blue**, press the **BOOT**
-button to confirm it's really you. The light turns **green** when Muse is
-connected.
+With the server host, token and Wi-Fi built in, the board joins Wi-Fi and
+connects to your server on first boot, with no other setup. The light turns
+**green** when it's connected.
 
 | Light | What it means |
 |---|---|
-| Orange, breathing | Ready for setup |
-| Blue, breathing | Press the button to confirm pairing |
-| Blue | Joining Wi-Fi and connecting to Muse |
+| Orange, breathing | No Wi-Fi or token built in |
+| Blue | Joining Wi-Fi and connecting to your server |
 | Green | Connected |
 | Yellow, blinking | Reconnecting |
-| Purple | Not paired |
+| Purple | No device token |
 | Red, blinking | Something went wrong: check the log |
 
-To reset the device and set it up again, hold the button for 5 seconds.
+Holding the button for 5 seconds forgets saved Wi-Fi and tokens; the ones
+built into the firmware come back on the next boot.
 
-Pairing requires a press of the button on the device, and every setup creates
-a fresh encrypted session. Because these are community devices, pairing has no
-manufacturer verification and can't prevent an active man-in-the-middle
-attack. Set it up on a network you trust.
+The device checks the server's TLS certificate against the public CA bundle,
+then encrypts the session end to end with Noise. The device token is the only
+credential, so keep it out of firmware you share.
 
 ## Boards
 
@@ -180,12 +163,13 @@ buy one.
 
 `tools/board.sh BOARD [build|flash|monitor|flash-monitor] [PORT]` builds each
 board in its own `build-<board>` directory with the right chip and settings.
-Boards that support images can show pictures Muse sends them:
+Boards that support images can show pictures the model sends them:
 `tools/image_for_display.py` prepares a picture for the screen size.
 
 Boards without PSRAM, like the classic ESP32 and the ESP32-C6, run without the
-home-network tunnel, which needs more memory than they have. Muse can still
-reach the device and control it.
+home-network tunnel, which needs more memory than they have. The server can
+still reach the device and control it. The server answers tunnel keepalives
+but doesn't route traffic into your home network yet.
 
 ## Hack and extend it
 
@@ -193,13 +177,11 @@ Every board's settings live in a small `devices/sdkconfig.<board>` file loaded
 on top of `sdkconfig.defaults`. To add a board, copy the closest one and change
 the chip, button pin, status light, and flash size.
 [`devices/README.md`](devices/README.md#add-a-board) covers the details, or ask
-Muse Code to do it for you.
+your coding agent to do it for you.
 
-To put your own avatar on a board's screen, plug in the board and run
-`python3 tools/muse/avatar.py`. It asks your Muse to redraw its avatar as the
-board's pixel avatar, checks the result, then builds and flashes it. Your avatar
-stays out of git. See [`tools/muse/AVATAR_RECIPE.md`](tools/muse/AVATAR_RECIPE.md)
-for how it works and for boards that need the manual steps.
+To put your own avatar on a board's screen, write a renderer at
+`components/mute/avatar/mute_pixel.c` (gitignored) with the same functions as
+[`avatar/mute_pixel.c`](avatar/mute_pixel.c); the build picks it up.
 
 To work on the UI without a board, use the
 [`simulator/`](simulator/README.md) desktop preview. It runs the production UI
@@ -208,9 +190,8 @@ keyboard input, and can render scripted screenshots without a display server.
 
 A few things worth knowing:
 
-- Your SDK token ships inside the firmware, so treat it as an identifier
-  rather than a password. If it leaks, revoke it on gadgets.muse.ai, generate
-  a new one, and rebuild.
+- Your device token ships inside the firmware. If it leaks, change
+  `MUTE_DEVICE_TOKEN` on the server and rebuild your gadgets.
 - **We strongly recommend enabling NVS encryption** if your board supports it.
   NVS stores Wi-Fi credentials and device tokens in flash; without encryption,
   anyone with physical access to the board can read them. Enable it with
@@ -236,12 +217,6 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
 Run `idf.py build` once first so the downloaded components are in place.
-
-## Community
-
-Meet other hackers who are building and customizing Muse gadgets in our
-community [Discord](https://discord.gg/3bhjCkZdd6). Get inspired, support each
-other, and share what you make.
 
 ## License
 

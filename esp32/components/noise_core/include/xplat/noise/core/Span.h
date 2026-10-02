@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 template <typename T>
 class Span {
@@ -105,4 +105,4 @@ class Span {
 using ByteSpan = Span<uint8_t>;
 using ConstByteSpan = Span<const uint8_t>;
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

@@ -68,7 +68,7 @@ static void reboot(int fuse_state) {
     test_fail_import = test_fail_sign = test_nondeterministic = 0;
     test_now = 1;
     s_signer = PAIRING_SIGNER_UNRESOLVED;
-    link_pairing_init("node-test", "device-test", "00:11:22:33:44:55", "0.2.1", NULL);
+    link_pairing_init("node-test", "device-test", "00:11:22:33:44:55", "0.2.1");
 }
 static cJSON *hello(double version, const char *auth) {
     // A valid public point generated independently of the responder key.
@@ -347,30 +347,6 @@ static void provisioning_and_scan_work_cannot_cross_sessions(void) {
     assert(test_commits == 2);
 }
 
-static void pairing_confirmed_carries_sdk_token(void) {
-    static const char token[] = "mgst_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-    char *plain = status_plain_json("pairing_confirmed");
-    assert(plain && !strstr(plain, "sdk_token"));
-    free(plain);
-
-    link_pairing_init("node-test", "device-test", "00:11:22:33:44:55", "0.2.1", token);
-    plain = status_plain_json("pairing_confirmed");
-    cJSON *json = cJSON_Parse(plain);
-    assert(json);
-    assert(strcmp(cJSON_GetObjectItem(json, "type")->valuestring, "status") == 0);
-    assert(strcmp(cJSON_GetObjectItem(json, "status")->valuestring, "pairing_confirmed") == 0);
-    assert(strcmp(cJSON_GetObjectItem(json, "sdk_token")->valuestring, token) == 0);
-    cJSON_Delete(json);
-    free(plain);
-    plain = status_plain_json("confirm_required");
-    assert(plain && !strstr(plain, "sdk_token"));
-    free(plain);
-    plain = status_plain_json("auth_ok");
-    assert(plain && !strstr(plain, "sdk_token"));
-    free(plain);
-    reboot(0);
-}
-
 int main(void) {
     assert(psa_crypto_init()==PSA_SUCCESS);
     reboot(0);
@@ -414,7 +390,6 @@ int main(void) {
     reboot(0);
     stale_confirmation_work_cannot_affect_replacement();
     provisioning_and_scan_work_cannot_cross_sessions();
-    pairing_confirmed_carries_sdk_token();
     printf("PASS actual pairing: eFuse=%d, explicit auth/policy agreement, encrypted finished/confirmation/replay/timeouts\n",
            TEST_PAIRING_EFUSE_AUTH);
     return 0;

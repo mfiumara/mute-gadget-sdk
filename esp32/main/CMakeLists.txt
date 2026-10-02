@@ -62,7 +62,7 @@ set(GADGET_REQUIRES
     lwip
     mbedtls
     efuse
-    muse
+    mute
     # The voice board's. Requirements are resolved before the configuration
     # is loaded, so this is unconditional; unused code is not linked.
     esp_driver_i2s
@@ -76,8 +76,8 @@ else()
     list(APPEND GADGET_SRCS "led_status.c")
 endif()
 
-if(CONFIG_MUSE_ENABLED)
-    list(APPEND GADGET_SRCS "muse_glue.c")
+if(CONFIG_MUTE_ENABLED)
+    list(APPEND GADGET_SRCS "mute_glue.c")
 endif()
 
 if(CONFIG_HOMEHUB_LED_BACKEND_DEVKIT_GPIO27 OR CONFIG_HOMEHUB_LED_BACKEND_VOICE_RING)
@@ -92,7 +92,7 @@ if(CONFIG_HOMEHUB_VOICE)
     list(APPEND GADGET_SRCS
         "voice.c"
         "voice_board.c"
-        "voice_muse_chat.c"
+        "voice_mute_chat.c"
         "voice_player.c"
     )
 endif()

@@ -46,7 +46,7 @@ typedef struct {
 struct ble_gatt_svc_def;
 struct ble_gap_event;
 
-// A second GATT service sharing this server (Muse's phone setup). Set it before
+// A second GATT service sharing this server (Mute's phone setup). Set it before
 // ble_server_start(): configure_host runs before the host starts, and
 // on_gap_event sees every GAP event; its return value is the event's result.
 typedef struct {

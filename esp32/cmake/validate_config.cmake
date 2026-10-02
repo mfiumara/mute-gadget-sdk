@@ -29,21 +29,10 @@ if(NOT CONFIG_LWIP_TCP_SND_BUF_DEFAULT EQUAL 16384 OR
         "ESP32 Device SDK requires TCP send buffer and receive window 16384 for DMA headroom. ${GADGET_CONFIG_REGEN_HINT}")
 endif()
 
-# A token from gadgets.muse.ai is mgst_ plus 43 canonical base64url characters.
-# Manufacturer builds pair with fleet attestation instead.
-if("${CONFIG_GADGET_SDK_TOKEN}" STREQUAL "")
-    if(NOT CONFIG_HOMEHUB_PAIRING_EFUSE_AUTH)
-        message(WARNING
-            "No SDK token: set CONFIG_GADGET_SDK_TOKEN (idf.py menuconfig > ESP32 Device SDK) "
-            "to the token from gadgets.muse.ai. Gadgets without one will stop pairing.")
-    endif()
-else()
-    string(LENGTH "${CONFIG_GADGET_SDK_TOKEN}" GADGET_SDK_TOKEN_LENGTH)
-    if(NOT GADGET_SDK_TOKEN_LENGTH EQUAL 48 OR
-       NOT CONFIG_GADGET_SDK_TOKEN MATCHES "^mgst_[A-Za-z0-9_-]*[AEIMQUYcgkosw048]$")
-        message(FATAL_ERROR
-            "CONFIG_GADGET_SDK_TOKEN is not a valid SDK token. Copy it again from gadgets.muse.ai.")
-    endif()
+if("${CONFIG_MUTE_DEVICE_TOKEN}" STREQUAL "")
+    message(WARNING
+        "No device token: set CONFIG_MUTE_DEVICE_TOKEN (idf.py menuconfig > ESP32 Device SDK) "
+        "to your Mute server's MUTE_DEVICE_TOKEN.")
 endif()
 
 # Manufacturer attestation must remain inaccessible to unsigned firmware.

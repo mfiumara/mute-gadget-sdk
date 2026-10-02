@@ -18,7 +18,7 @@
 
 #include <xplat/noise/core/CryptoBackend.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 class PsaCryptoBackend final : public CryptoBackend {
  public:
@@ -68,4 +68,4 @@ class PsaCryptoBackend final : public CryptoBackend {
       ByteSpan plaintextOut) noexcept override;
 };
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

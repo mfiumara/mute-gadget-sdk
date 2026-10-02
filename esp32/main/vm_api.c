@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "sdkconfig.h"
 #include "vm_api.h"
 
 #include <stdio.h>
@@ -30,7 +31,6 @@
 
 static const char *TAG = "link.vm_api";
 static char s_api_base[256] = VM_API_DEFAULT_BASE_URL;
-static char s_sdk_token[64];
 #define FETCH_PATH "/fetch_vms"
 #define MINT_TOKEN_PATH "/device_token/mint"
 #define REFRESH_TOKEN_PATH "/device_token/refresh"
@@ -103,14 +103,6 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt) {
 void vm_api_set_base_url(const char *url) {
     snprintf(s_api_base, sizeof(s_api_base), "%s",
              url && *url ? url : VM_API_DEFAULT_BASE_URL);
-}
-
-void vm_api_set_sdk_token(const char *sdk_token) {
-    if (sdk_token && strlen(sdk_token) >= sizeof(s_sdk_token)) {
-        ESP_LOGE(TAG, "SDK token too long; sending none");
-        sdk_token = NULL;
-    }
-    snprintf(s_sdk_token, sizeof(s_sdk_token), "%s", sdk_token ? sdk_token : "");
 }
 
 static void make_api_url(char *out, size_t out_cap, const char *path) {
@@ -231,8 +223,7 @@ static char *make_device_body(const char *device_id) {
     if (!device_id || !*device_id) return NULL;
     cJSON *root = cJSON_CreateObject();
     if (!root) return NULL;
-    if (!cJSON_AddStringToObject(root, "device_id", device_id)
-        || (s_sdk_token[0] && !cJSON_AddStringToObject(root, "sdk_token", s_sdk_token))) {
+    if (!cJSON_AddStringToObject(root, "device_id", device_id)) {
         cJSON_Delete(root);
         return NULL;
     }
@@ -422,7 +413,6 @@ static int do_refresh(const char *auth_header, const char *device_id,
     }
     char url[320];
     make_api_url(url, sizeof(url), REFRESH_TOKEN_PATH);
-    if (s_sdk_token[0]) ESP_LOGI(TAG, "refresh carries SDK token %.12s", s_sdk_token);
 
     resp_buf_t resp = {0};
     int rc = http_json_with_retries(url, HTTP_METHOD_POST, auth_header, body,

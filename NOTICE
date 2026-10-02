@@ -1,0 +1,12 @@
+Mute Gadgets
+Copyright (c) the Mute Gadget SDK contributors.
+
+This project is a fork of muse-gadget-sdk
+(https://github.com/facebookincubator/muse-gadget-sdk),
+Copyright (c) Meta Platforms, Inc. and affiliates, licensed under the
+Apache License, Version 2.0. Files carrying Meta's copyright notice were
+modified: product names were changed, Meta's services, app pairing and
+proprietary avatar artwork were removed, and the code was pointed at a
+self-hosted server.
+
+Mute is not affiliated with or endorsed by Meta.

@@ -22,7 +22,7 @@
 #include <xplat/noise/core/Span.h>
 #include <xplat/noise/core/Status.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 class BufferWriter {
  public:
@@ -91,4 +91,4 @@ class BufferWriter {
   Status status_;
 };
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

@@ -72,7 +72,7 @@ void noise_ctrl_set_host(const char *host);
 
 // Off (the default), the session checks for traffic every tick. On, once it
 // has been quiet POWER_SAVE_QUIET_MS, every POWER_SAVE_POLL_MS instead, so the
-// CPU can sleep between (Muse with its screen off); traffic goes back to every
+// CPU can sleep between (Mute with its screen off); traffic goes back to every
 // tick at once.
 void noise_ctrl_set_power_save(bool on);
 
@@ -96,7 +96,7 @@ void noise_ctrl_send_command_result(
     noise_ctrl_session_generation_t session_generation,
     const char *request_id, cJSON *result);
 
-// ---- Extra daemon requests on this session (Muse builds only) ----
+// ---- Extra daemon requests on this session (Mute builds only) ----
 //
 // Any task can open an HTTP request to the VM daemon on its own stream of this
 // session. A refused or reset request never affects the control session.

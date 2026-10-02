@@ -2,7 +2,7 @@
 name: gadget-freebox-player-pop
 description: >-
   Control Freebox Player Pop media through Google Cast or remote keys and app links through
-  Android TV Remote v2 using Muse Home Link. Use whichever local service is actually
+  Android TV Remote v2 using Mute Home Link. Use whichever local service is actually
   available; not for the Freebox router/server.
 ---
 

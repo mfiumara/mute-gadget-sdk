@@ -23,7 +23,7 @@
 #include <xplat/noise/core/Span.h>
 #include <xplat/noise/core/Status.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 struct TransportFrameView {
   uint64_t chunk_id{0};
@@ -163,4 +163,4 @@ class OrderedTransportFramer {
   bool inboundPoisoned_{false};
 };
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

@@ -30,8 +30,8 @@ typedef enum {
     APP_WIFI_BUSY,          // another setup operation had the radio
 } app_wifi_join_t;
 
-#if CONFIG_MUSE_ENABLED
-// Muse (muse_glue.c) drives setup through these; all are safe from any task.
+#if CONFIG_MUTE_ENABLED
+// Mute (mute_glue.c) drives setup through these; all are safe from any task.
 
 // Remembers a Wi-Fi network first among the saved ones (hidden: it doesn't
 // broadcast its name), or with an empty ssid forgets them all.
@@ -51,7 +51,7 @@ int64_t app_wifi_none_nearby_at(void);
 // Drops the VM session and leaves Wi-Fi, so the radio can sleep;
 // app_wifi_join_saved() brings both back. Returns false when busy.
 bool app_wifi_nap(void);
-// Starts the BLE server if needed and keeps it advertising (or not) for Muse's
+// Starts the BLE server if needed and keeps it advertising (or not) for Mute's
 // phone-setup service once setup is complete.
 void app_ble_companion_set(bool advertise);
 // A talk-button press. Returns true when it confirmed a pending pairing.
@@ -60,7 +60,7 @@ bool app_confirm_pairing_press(void);
 void app_reset_setup_async(void);
 #endif
 
-#if CONFIG_MUSE_ENABLED || CONFIG_HOMEHUB_VOICE
+#if CONFIG_MUTE_ENABLED || CONFIG_HOMEHUB_VOICE
 // Looks up a VM credential from the paired account (want_vm: a VM id, or empty
 // for the preferred VM). *vm_token is heap; free() it.
 bool app_hatch_vm_credentials(const char *want_vm, char *vm_id, size_t id_cap,

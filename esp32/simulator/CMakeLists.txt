@@ -14,7 +14,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 
-project(muse_ui_simulator VERSION 0.1.0 LANGUAGES C)
+project(mute_ui_simulator VERSION 0.1.0 LANGUAGES C)
 
 if(WIN32 OR NOT UNIX)
     message(FATAL_ERROR "The UI simulator currently supports Linux and macOS")
@@ -31,39 +31,39 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(MUSE_SIM_FETCH_DEPS
+option(MUTE_SIM_FETCH_DEPS
        "Fetch pinned LVGL and SDL2 sources when suitable system packages are unavailable"
        ON)
-option(MUSE_SIM_SANITIZERS "Build the simulator with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
-option(MUSE_SIM_WARNINGS_AS_ERRORS "Treat simulator warnings as errors" OFF)
+option(MUTE_SIM_SANITIZERS "Build the simulator with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
+option(MUTE_SIM_WARNINGS_AS_ERRORS "Treat simulator warnings as errors" OFF)
 
-set(MUSE_SIM_LVGL_VERSION "9.5.0")
-set(MUSE_SIM_SDL_MIN_VERSION "2.0.18")
-set(MUSE_SIM_SDL_FETCH_VERSION "2.32.10")
+set(MUTE_SIM_LVGL_VERSION "9.5.0")
+set(MUTE_SIM_SDL_MIN_VERSION "2.0.18")
+set(MUTE_SIM_SDL_FETCH_VERSION "2.32.10")
 
 find_package(PkgConfig QUIET)
 
 # Prefer a system SDL2 so desktop packaging can control its display backends.
 # SDL2's CMake package is not installed on every distribution, so pkg-config is
 # also accepted before falling back to the pinned upstream archive.
-find_package(SDL2 ${MUSE_SIM_SDL_MIN_VERSION} CONFIG QUIET)
+find_package(SDL2 ${MUTE_SIM_SDL_MIN_VERSION} CONFIG QUIET)
 if(TARGET SDL2::SDL2)
-    set(MUSE_SIM_SDL_TARGET SDL2::SDL2)
+    set(MUTE_SIM_SDL_TARGET SDL2::SDL2)
 elseif(TARGET SDL2::SDL2-static)
-    set(MUSE_SIM_SDL_TARGET SDL2::SDL2-static)
+    set(MUTE_SIM_SDL_TARGET SDL2::SDL2-static)
 elseif(PkgConfig_FOUND)
-    pkg_check_modules(MUSE_SIM_SYSTEM_SDL QUIET IMPORTED_TARGET GLOBAL
-                      "sdl2>=${MUSE_SIM_SDL_MIN_VERSION}")
-    if(MUSE_SIM_SYSTEM_SDL_FOUND)
-        set(MUSE_SIM_SDL_TARGET PkgConfig::MUSE_SIM_SYSTEM_SDL)
+    pkg_check_modules(MUTE_SIM_SYSTEM_SDL QUIET IMPORTED_TARGET GLOBAL
+                      "sdl2>=${MUTE_SIM_SDL_MIN_VERSION}")
+    if(MUTE_SIM_SYSTEM_SDL_FOUND)
+        set(MUTE_SIM_SDL_TARGET PkgConfig::MUTE_SIM_SYSTEM_SDL)
     endif()
 endif()
 
-if(NOT MUSE_SIM_SDL_TARGET)
-    if(NOT MUSE_SIM_FETCH_DEPS)
+if(NOT MUTE_SIM_SDL_TARGET)
+    if(NOT MUTE_SIM_FETCH_DEPS)
         message(FATAL_ERROR
-                "SDL2 >= ${MUSE_SIM_SDL_MIN_VERSION} was not found and "
-                "MUSE_SIM_FETCH_DEPS is OFF")
+                "SDL2 >= ${MUTE_SIM_SDL_MIN_VERSION} was not found and "
+                "MUTE_SIM_FETCH_DEPS is OFF")
     endif()
 
     # Build only the static SDL runtime. Tests and the SDL test helper library
@@ -85,12 +85,12 @@ if(NOT MUSE_SIM_SDL_TARGET)
     set(SDL_SENSOR OFF CACHE BOOL "" FORCE)
     FetchContent_Declare(
         SDL2
-        URL "https://github.com/libsdl-org/SDL/archive/refs/tags/release-${MUSE_SIM_SDL_FETCH_VERSION}.tar.gz"
+        URL "https://github.com/libsdl-org/SDL/archive/refs/tags/release-${MUTE_SIM_SDL_FETCH_VERSION}.tar.gz"
         URL_HASH "SHA256=03f9d7c191a837525c9cda6406af2f2e48be02b5e7eb03d949cc9f1e9ca41c8b"
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     FetchContent_MakeAvailable(SDL2)
-    set(MUSE_SIM_SDL_TARGET SDL2::SDL2-static)
+    set(MUTE_SIM_SDL_TARGET SDL2::SDL2-static)
 endif()
 
 # The UI depends on LVGL 9.5 private APIs and on the fonts, SDL driver, and
@@ -98,29 +98,29 @@ endif()
 # default so an exact-version system package with a different configuration
 # cannot be selected accidentally. Turning dependency fetching off explicitly
 # opts into a compatible system LVGL build.
-if(NOT MUSE_SIM_FETCH_DEPS)
-    find_package(lvgl ${MUSE_SIM_LVGL_VERSION} EXACT CONFIG QUIET)
+if(NOT MUTE_SIM_FETCH_DEPS)
+    find_package(lvgl ${MUTE_SIM_LVGL_VERSION} EXACT CONFIG QUIET)
     if(TARGET lvgl::lvgl)
-        set(MUSE_SIM_LVGL_TARGET lvgl::lvgl)
+        set(MUTE_SIM_LVGL_TARGET lvgl::lvgl)
     elseif(TARGET lvgl)
-        set(MUSE_SIM_LVGL_TARGET lvgl)
+        set(MUTE_SIM_LVGL_TARGET lvgl)
     elseif(PkgConfig_FOUND)
-        pkg_check_modules(MUSE_SIM_SYSTEM_LVGL QUIET IMPORTED_TARGET GLOBAL
-                          "lvgl=${MUSE_SIM_LVGL_VERSION}")
-        if(MUSE_SIM_SYSTEM_LVGL_FOUND)
-            foreach(_include_dir IN LISTS MUSE_SIM_SYSTEM_LVGL_INCLUDE_DIRS)
+        pkg_check_modules(MUTE_SIM_SYSTEM_LVGL QUIET IMPORTED_TARGET GLOBAL
+                          "lvgl=${MUTE_SIM_LVGL_VERSION}")
+        if(MUTE_SIM_SYSTEM_LVGL_FOUND)
+            foreach(_include_dir IN LISTS MUTE_SIM_SYSTEM_LVGL_INCLUDE_DIRS)
                 if(EXISTS "${_include_dir}/src/draw/lv_image_decoder_private.h" AND
                    EXISTS "${_include_dir}/src/misc/lv_area_private.h")
-                    set(MUSE_SIM_LVGL_TARGET PkgConfig::MUSE_SIM_SYSTEM_LVGL)
+                    set(MUTE_SIM_LVGL_TARGET PkgConfig::MUTE_SIM_SYSTEM_LVGL)
                     break()
                 endif()
             endforeach()
         endif()
     endif()
-    if(NOT MUSE_SIM_LVGL_TARGET)
+    if(NOT MUTE_SIM_LVGL_TARGET)
         message(FATAL_ERROR
-                "LVGL ${MUSE_SIM_LVGL_VERSION} with the simulator configuration "
-                "was not found and MUSE_SIM_FETCH_DEPS is OFF")
+                "LVGL ${MUTE_SIM_LVGL_VERSION} with the simulator configuration "
+                "was not found and MUTE_SIM_FETCH_DEPS is OFF")
     endif()
 else()
     set(LV_BUILD_CONF_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h" CACHE FILEPATH "" FORCE)
@@ -131,66 +131,66 @@ else()
     set(CONFIG_LV_USE_PRIVATE_API ON CACHE BOOL "" FORCE)
     FetchContent_Declare(
         lvgl
-        URL "https://github.com/lvgl/lvgl/archive/refs/tags/v${MUSE_SIM_LVGL_VERSION}.tar.gz"
+        URL "https://github.com/lvgl/lvgl/archive/refs/tags/v${MUTE_SIM_LVGL_VERSION}.tar.gz"
         URL_HASH "SHA256=34a955cdf3a2d005507b704e87357af669a114523b6d3f77b5344fdc68717bc6"
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     FetchContent_MakeAvailable(lvgl)
-    set(MUSE_SIM_LVGL_TARGET lvgl::lvgl)
+    set(MUTE_SIM_LVGL_TARGET lvgl::lvgl)
 
     # Both LVGL's SDL display driver and its SDL2 OS abstraction include SDL
     # headers while LVGL itself is compiled.
-    target_link_libraries(lvgl PRIVATE ${MUSE_SIM_SDL_TARGET})
+    target_link_libraries(lvgl PRIVATE ${MUTE_SIM_SDL_TARGET})
     target_compile_definitions(lvgl PRIVATE _POSIX_C_SOURCE=200809L)
 endif()
 
-set(MUSE_COMPONENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../components/muse")
+set(MUTE_COMPONENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../components/mute")
 
-add_executable(muse_simulator
+add_executable(mute_simulator
     src/main.c
     src/sim_board.c
     src/sim_platform.c
     src/sim_services.c
-    "${MUSE_COMPONENT_DIR}/muse_ui.c"
-    "${MUSE_COMPONENT_DIR}/muse_state.c"
-    "${MUSE_COMPONENT_DIR}/muse_text.c"
-    "${MUSE_COMPONENT_DIR}/../../avatar/muse_pixel.c"
+    "${MUTE_COMPONENT_DIR}/mute_ui.c"
+    "${MUTE_COMPONENT_DIR}/mute_state.c"
+    "${MUTE_COMPONENT_DIR}/mute_text.c"
+    "${MUTE_COMPONENT_DIR}/../../avatar/mute_pixel.c"
 )
 
-target_include_directories(muse_simulator PRIVATE
+target_include_directories(mute_simulator PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/compat"
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
-    "${MUSE_COMPONENT_DIR}"
+    "${MUTE_COMPONENT_DIR}"
 )
 
-target_link_libraries(muse_simulator PRIVATE
-    ${MUSE_SIM_LVGL_TARGET}
-    ${MUSE_SIM_SDL_TARGET}
+target_link_libraries(mute_simulator PRIVATE
+    ${MUTE_SIM_LVGL_TARGET}
+    ${MUTE_SIM_SDL_TARGET}
     Threads::Threads
 )
 
-target_link_libraries(muse_simulator PRIVATE m)
+target_link_libraries(mute_simulator PRIVATE m)
 
 if(APPLE)
     # SDL's Cocoa display and screensaver backends use IOKit even when its
     # optional power subsystem is disabled. The static target does not carry
     # that framework in this configuration.
-    find_library(MUSE_SIM_IOKIT_FRAMEWORK IOKit REQUIRED)
-    target_link_libraries(muse_simulator PRIVATE ${MUSE_SIM_IOKIT_FRAMEWORK})
+    find_library(MUTE_SIM_IOKIT_FRAMEWORK IOKit REQUIRED)
+    target_link_libraries(mute_simulator PRIVATE ${MUTE_SIM_IOKIT_FRAMEWORK})
 endif()
 
-target_compile_options(muse_simulator PRIVATE -Wall -Wextra -Wpedantic)
-if(MUSE_SIM_WARNINGS_AS_ERRORS)
-    target_compile_options(muse_simulator PRIVATE -Werror)
+target_compile_options(mute_simulator PRIVATE -Wall -Wextra -Wpedantic)
+if(MUTE_SIM_WARNINGS_AS_ERRORS)
+    target_compile_options(mute_simulator PRIVATE -Werror)
 endif()
 
-if(MUSE_SIM_SANITIZERS)
-    target_compile_options(muse_simulator PRIVATE
+if(MUTE_SIM_SANITIZERS)
+    target_compile_options(mute_simulator PRIVATE
         -fsanitize=address,undefined
         -fno-omit-frame-pointer
     )
-    target_link_options(muse_simulator PRIVATE
+    target_link_options(mute_simulator PRIVATE
         -fsanitize=address,undefined
         -fno-omit-frame-pointer
     )
@@ -200,32 +200,32 @@ include(CTest)
 if(BUILD_TESTING AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_simulator.py")
     find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
     add_test(
-        NAME muse_simulator_headless
+        NAME mute_simulator_headless
         COMMAND "${Python3_EXECUTABLE}"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_simulator.py"
-                --binary "$<TARGET_FILE:muse_simulator>"
+                --binary "$<TARGET_FILE:mute_simulator>"
     )
-    set(MUSE_SIM_TEST_ENVIRONMENT
+    set(MUTE_SIM_TEST_ENVIRONMENT
         "SDL_VIDEODRIVER=dummy"
         "SDL_AUDIODRIVER=dummy"
     )
-    if(MUSE_SIM_SANITIZERS)
+    if(MUTE_SIM_SANITIZERS)
         # Apple Clang's ASan runtime rejects leak detection on macOS.
         if(APPLE)
-            set(MUSE_SIM_ASAN_OPTIONS "detect_leaks=0:halt_on_error=1")
+            set(MUTE_SIM_ASAN_OPTIONS "detect_leaks=0:halt_on_error=1")
         else()
-            set(MUSE_SIM_ASAN_OPTIONS "detect_leaks=1:halt_on_error=1")
+            set(MUTE_SIM_ASAN_OPTIONS "detect_leaks=1:halt_on_error=1")
         endif()
-        list(APPEND MUSE_SIM_TEST_ENVIRONMENT
-            "ASAN_OPTIONS=${MUSE_SIM_ASAN_OPTIONS}"
+        list(APPEND MUTE_SIM_TEST_ENVIRONMENT
+            "ASAN_OPTIONS=${MUTE_SIM_ASAN_OPTIONS}"
             "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
         )
     endif()
-    set_tests_properties(muse_simulator_headless PROPERTIES
-        ENVIRONMENT "${MUSE_SIM_TEST_ENVIRONMENT}"
+    set_tests_properties(mute_simulator_headless PROPERTIES
+        ENVIRONMENT "${MUTE_SIM_TEST_ENVIRONMENT}"
         TIMEOUT 60
     )
 endif()
 
-message(STATUS "Muse simulator LVGL target: ${MUSE_SIM_LVGL_TARGET}")
-message(STATUS "Muse simulator SDL2 target: ${MUSE_SIM_SDL_TARGET}")
+message(STATUS "Mute simulator LVGL target: ${MUTE_SIM_LVGL_TARGET}")
+message(STATUS "Mute simulator SDL2 target: ${MUTE_SIM_SDL_TARGET}")

@@ -20,8 +20,8 @@ import os
 
 import pytest
 
-from musegadget import executor
-from musegadget.executor import Account, Executor
+from mutegadget import executor
+from mutegadget.executor import Account, Executor
 
 
 @pytest.fixture

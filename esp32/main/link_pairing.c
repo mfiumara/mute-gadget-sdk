@@ -79,9 +79,6 @@ static bool s_initialized;
 static pairing_signer_t s_signer = PAIRING_SIGNER_UNRESOLVED;
 
 static const char *s_node_id = "";
-// Borrowed like the other identity strings: set once before BLE starts and
-// pointing at static storage (the CONFIG_GADGET_SDK_TOKEN literal).
-static const char *s_sdk_token;
 static const char *s_device_id = "";
 static const char *s_mac = "";
 static const char *s_firmware_version = "";
@@ -675,15 +672,13 @@ static bool derive_session_keys(void) {
 }
 
 void link_pairing_init(const char *node_id, const char *device_id,
-                       const char *mac, const char *firmware_version,
-                       const char *sdk_token) {
+                       const char *mac, const char *firmware_version) {
     if (!s_lock) s_lock = xSemaphoreCreateMutex();
     lock_take();
     s_node_id = node_id ? node_id : "";
     s_device_id = device_id ? device_id : "";
     s_mac = mac ? mac : "";
     s_firmware_version = firmware_version ? firmware_version : "unknown";
-    s_sdk_token = sdk_token && *sdk_token ? sdk_token : NULL;
     if (!s_initialized) {
         mbedtls_ecp_group_init(&s_group);
         mbedtls_mpi_init(&s_device_priv);
@@ -1036,20 +1031,11 @@ char *link_pairing_encrypt_json(const char *plain_json, uint32_t generation,
     return encrypt_json_for_session(plain_json, generation, record_generation);
 }
 
-// Apps read only type and status, so versions that predate sdk_token ignore it.
 static char *status_plain_json(const char *status) {
     cJSON *plain = cJSON_CreateObject();
     if (!plain) return NULL;
     cJSON_AddStringToObject(plain, "type", "status");
     cJSON_AddStringToObject(plain, "status", status);
-    if (s_sdk_token && strcmp(status, "pairing_confirmed") == 0
-        && !cJSON_AddStringToObject(plain, "sdk_token", s_sdk_token)) {
-        cJSON_Delete(plain);
-        return NULL;
-    }
-    if (s_sdk_token && strcmp(status, "pairing_confirmed") == 0) {
-        ESP_LOGI(TAG, "pairing_confirmed carries SDK token %.12s", s_sdk_token);
-    }
     char *plain_json = cJSON_PrintUnformatted(plain);
     cJSON_Delete(plain);
     return plain_json;

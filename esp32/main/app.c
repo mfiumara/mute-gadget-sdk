@@ -30,7 +30,7 @@
 #include "cJSON.h"
 
 #include "esp_heap_caps.h"
-#if CONFIG_MUSE_WATCHER_CAMERA
+#if CONFIG_MUTE_WATCHER_CAMERA
 #include "freertos/idf_additions.h"
 #endif
 #include "esp_timer.h"
@@ -68,12 +68,12 @@
 #if CONFIG_HOMEHUB_SENSECAP_SENSORS
 #include "sensecap_sensors.h"
 #endif
-#if CONFIG_MUSE_WATCHER_CAMERA
+#if CONFIG_MUTE_WATCHER_CAMERA
 #include "boards/watcher_camera.h"
 #endif
-#if CONFIG_MUSE_ENABLED
-#include "muse_glue.h"
-// Muse joins Wi-Fi from its own settings, before or without pairing.
+#if CONFIG_MUTE_ENABLED
+#include "mute_glue.h"
+// Mute joins Wi-Fi from its own settings, before or without pairing.
 #define WIFI_WITHOUT_PAIRING 1
 #else
 #define WIFI_WITHOUT_PAIRING 0
@@ -126,9 +126,6 @@ static int64_t s_last_vm_auth_refresh_attempt_us = 0;
 // Uptime of the last proactive-refresh attempt. 0 = none this boot, so the
 // first one falls due once uptime alone exceeds the interval.
 static int64_t s_last_periodic_token_refresh_us = 0;
-// The SDK token reaches Muse only in refresh bodies until apps forward it at
-// mint, so each boot of a token-bearing build attempts one refresh to report it.
-static bool s_sdk_token_report_attempted = false;
 static int64_t s_vm_auth_refresh_interval_us = VM_AUTH_REFRESH_RETRY_INTERVAL_US;
 static uint8_t s_vm_auth_refusals = 0;
 static bool s_vm_auth_refresh_pending = false;
@@ -138,10 +135,10 @@ static bool s_ota_pending_verify = false;
 static uint32_t s_confirm_generation = 0;
 static uint32_t s_confirm_session_generation = 0;
 static TaskHandle_t s_confirm_timeout_task = NULL;
-#if CONFIG_MUSE_ENABLED
-static volatile bool s_muse_napping = false;   // app_wifi_nap(), or no network nearby, until the next join
-static volatile bool s_muse_resume_vm = false;  // napped with a VM session: resume it
-static SemaphoreHandle_t s_muse_joined = NULL;
+#if CONFIG_MUTE_ENABLED
+static volatile bool s_mute_napping = false;   // app_wifi_nap(), or no network nearby, until the next join
+static volatile bool s_mute_resume_vm = false;  // napped with a VM session: resume it
+static SemaphoreHandle_t s_mute_joined = NULL;
 #endif
 
 enum scan_refresh_flag {
@@ -383,7 +380,7 @@ static uint8_t saved_wifi_channel(const char *ssid) {
     return (uint8_t)strtoul(value, NULL, 10);
 }
 
-// app_wifi_none_nearby_at(). Written by the join at boot, then only by Muse's
+// app_wifi_none_nearby_at(). Written by the join at boot, then only by Mute's
 // keeper task, which reads it, so it needs no lock.
 static int64_t s_none_nearby_us;
 
@@ -579,8 +576,8 @@ static void setup_disconnect_to_clean(void) {
     disconnect_vm_transports();
     vm_api_set_base_url(NULL);
     noise_ctrl_set_host(NULL);
-#if CONFIG_MUSE_ENABLED
-    s_muse_resume_vm = false;
+#if CONFIG_MUTE_ENABLED
+    s_mute_resume_vm = false;
 #endif
     wifi_mgr_disconnect();
     ui_set_vm(NULL);
@@ -647,8 +644,8 @@ static void shutdown_ble_task(void *arg) {
     (void)arg;
     vTaskDelay(pdMS_TO_TICKS(1000));
     ui_set_ble("off");
-#if CONFIG_MUSE_ENABLED
-    // Muse's phone-setup service shares the server: stop setup advertising only.
+#if CONFIG_MUTE_ENABLED
+    // Mute's phone-setup service shares the server: stop setup advertising only.
     ble_server_stop_advertising(false);
 #else
     ble_server_full_shutdown();
@@ -674,7 +671,7 @@ static bool complete_setup_and_stop_ble(const char *reason, uint32_t session_gen
         ESP_LOGW(TAG, "failed to start BLE stop task");
         vTaskDelay(pdMS_TO_TICKS(1000));
         ui_set_ble("off");
-#if CONFIG_MUSE_ENABLED
+#if CONFIG_MUTE_ENABLED
         ble_server_stop_advertising(false);
 #else
         ble_server_full_shutdown();
@@ -694,7 +691,7 @@ static void restart_task(void *arg) {
 // to hold BLE, Wi-Fi and a TLS handshake at once (the S3's esp-aes DMA buffers fail even
 // with PSRAM). Pairing ends once the credentials are saved, and the device
 // restarts to reach its VM with the BLE stack never started.
-#define PAIR_THEN_RESTART CONFIG_MUSE_ENABLED
+#define PAIR_THEN_RESTART CONFIG_MUTE_ENABLED
 
 static char *load_token_unlocked(const char *key) {
     char *buf = calloc(1, TOKEN_BUF_BYTES);
@@ -873,9 +870,7 @@ static bool ensure_access_token_ready_with_gate_held(
                    >= TOKEN_PERIODIC_REFRESH_INTERVAL_US;
 #endif
 
-    bool sdk_token_report_due = identity_sdk_token() && !s_sdk_token_report_attempted;
-
-    if (!access_token_rejected && !periodic_due && !sdk_token_report_due) {
+    if (!access_token_rejected && !periodic_due) {
         // Nothing has complained about this token, so keep using it.
         ok = true;
         goto done;
@@ -888,12 +883,7 @@ static bool ensure_access_token_ready_with_gate_held(
         s_last_periodic_token_refresh_us = esp_timer_get_time();
         ESP_LOGI(TAG, "proactive device token refresh (every %d days of uptime)",
                  CONFIG_HOMEHUB_TOKEN_REFRESH_INTERVAL_DAYS);
-    } else if (sdk_token_report_due && !access_token_rejected) {
-        ESP_LOGI(TAG, "refreshing device token to report the SDK token");
     }
-    // Stamped on the attempt, like the periodic refresh, so failures don't
-    // retry on every fetch_vms.
-    if (sdk_token_report_due) s_sdk_token_report_attempted = true;
 
     vm_device_tokens_t tokens = {0};
     vm_token_refresh_method_t method = VM_TOKEN_REFRESH_NONE;
@@ -1545,7 +1535,7 @@ static void draw_url_done(const image_fetch_result_t *r, void *user) {
 }
 #endif
 
-#if CONFIG_MUSE_WATCHER_CAMERA
+#if CONFIG_MUTE_WATCHER_CAMERA
 typedef struct {
     noise_ctrl_session_generation_t session_generation;
     char request_id[64];
@@ -1865,7 +1855,7 @@ static cJSON *on_ws_command(
         return result;
     }
 #endif
-#if CONFIG_MUSE_WATCHER_CAMERA
+#if CONFIG_MUTE_WATCHER_CAMERA
     if (strcmp(command, "camera.capture") == 0) {
         watcher_camera_task_args_t *args = calloc(1, sizeof(*args));
         if (!args) return command_error("out_of_memory", "failed to allocate camera request");
@@ -2125,8 +2115,8 @@ static void on_button_long_press(void) {
 }
 
 
-#if CONFIG_MUSE_ENABLED
-// ---- Muse hooks (app.h) -----------------------------------------------------
+#if CONFIG_MUTE_ENABLED
+// ---- Mute hooks (app.h) -----------------------------------------------------
 
 void app_wifi_set_credentials(const char *ssid, const char *password, bool hidden) {
     if (!ssid || !ssid[0]) {
@@ -2143,31 +2133,31 @@ bool app_wifi_forget(const char *ssid) {
     return wifi_known_forget(ssid);
 }
 
-#define MUSE_VM_RETRY_MIN_US (5LL * 1000 * 1000)
-#define MUSE_VM_RETRY_MAX_US (60LL * 1000 * 1000)
+#define MUTE_VM_RETRY_MIN_US (5LL * 1000 * 1000)
+#define MUTE_VM_RETRY_MAX_US (60LL * 1000 * 1000)
 
-// Muse's keeper joins Wi-Fi but can't reach the VM: that fetches the VM list
+// Mute's keeper joins Wi-Fi but can't reach the VM: that fetches the VM list
 // over HTTPS, which needs more stack than the keeper has, and by then there's
 // seldom the internal RAM for a task of its own. So the heartbeat does it (as
 // at boot), retrying until the session runs; from then on the session
 // reconnects by itself.
-static void muse_keep_vm_session(void) {
+static void mute_keep_vm_session(void) {
     static int64_t next_try;
-    static int64_t backoff = MUSE_VM_RETRY_MIN_US;
+    static int64_t backoff = MUTE_VM_RETRY_MIN_US;
     if (!wifi_mgr_is_connected() || !config_is_provisioned() || noise_ctrl_is_running()) {
         next_try = 0;
-        backoff = MUSE_VM_RETRY_MIN_US;
+        backoff = MUTE_VM_RETRY_MIN_US;
         return;
     }
     int64_t now = esp_timer_get_time();
-    if (now < next_try || !operation_gate_take(0, "Muse VM connect")) return;
+    if (now < next_try || !operation_gate_take(0, "Mute VM connect")) return;
     led_status_set_state(LED_STATE_WIFI_CONNECTED);
     // Back from a nap: the same VM with the same token, without fetching the
     // VM list again, which took most of the 15 s to reconnect. A refused
     // token is refreshed as usual (ws_auth_failed).
     bool connected = false;
-    if (s_muse_resume_vm) {
-        s_muse_resume_vm = false;
+    if (s_mute_resume_vm) {
+        s_mute_resume_vm = false;
         connected = noise_ctrl_reconnect(strcmp(s_ui_wifi, "down") == 0 ? NULL : s_ui_wifi);
         if (connected) ESP_LOGI(TAG, "resuming the VM session from before the nap");
     }
@@ -2180,22 +2170,22 @@ static void muse_keep_vm_session(void) {
     if (!connected) {
         ESP_LOGW(TAG, "no VM session; retrying in %llds", (long long)(backoff / 1000000));
         next_try = now + backoff;
-        backoff = backoff * 2 > MUSE_VM_RETRY_MAX_US ? MUSE_VM_RETRY_MAX_US : backoff * 2;
+        backoff = backoff * 2 > MUTE_VM_RETRY_MAX_US ? MUTE_VM_RETRY_MAX_US : backoff * 2;
     }
 }
 
-// The heartbeat's pause, cut short once Muse joins Wi-Fi so the VM session
+// The heartbeat's pause, cut short once Mute joins Wi-Fi so the VM session
 // starts at once. Napping off Wi-Fi, there's nothing for the heartbeat to do,
 // and each tick wakes the CPU.
-static void muse_heartbeat_pause(void) {
-    xSemaphoreTake(s_muse_joined, pdMS_TO_TICKS(s_muse_napping ? 60000 : 5000));
+static void mute_heartbeat_pause(void) {
+    xSemaphoreTake(s_mute_joined, pdMS_TO_TICKS(s_mute_napping ? 60000 : 5000));
 }
 
 app_wifi_join_t app_wifi_join_saved(int timeout_ms, bool first_only) {
-    if (!operation_gate_take(0, "Muse Wi-Fi connect")) return APP_WIFI_BUSY;
-    s_muse_napping = false;
+    if (!operation_gate_take(0, "Mute Wi-Fi connect")) return APP_WIFI_BUSY;
+    s_mute_napping = false;
 
-    // Unpaired, the LED keeps showing the pairing state; Wi-Fi is Muse's alone.
+    // Unpaired, the LED keeps showing the pairing state; Wi-Fi is Mute's alone.
     // With no network in range the LED and status stay as they were.
     bool paired = config_is_provisioned();
     char joined[WIFI_KNOWN_SSID_MAX + 1];
@@ -2205,12 +2195,12 @@ app_wifi_join_t app_wifi_join_saved(int timeout_ms, bool first_only) {
         ui_set_wifi(joined);
         ui_set_status("wifi_connected");
         persist_connected_wifi_channel();
-        if (paired) xSemaphoreGive(s_muse_joined);   // muse_keep_vm_session()
+        if (paired) xSemaphoreGive(s_mute_joined);   // mute_keep_vm_session()
     } else if (result == APP_WIFI_FAILED) {
         ui_set_status("wifi_failed");
         if (paired) led_status_set_state(LED_STATE_WS_DISCONNECTED);
     } else if (result == APP_WIFI_NOT_NEARBY) {
-        s_muse_napping = true;   // off Wi-Fi until the next look
+        s_mute_napping = true;   // off Wi-Fi until the next look
     }
     operation_gate_give();
     return result;
@@ -2221,18 +2211,18 @@ int64_t app_wifi_none_nearby_at(void) {
 }
 
 bool app_wifi_nap(void) {
-    if (!operation_gate_take(0, "Muse Wi-Fi nap")) return false;
-    s_muse_resume_vm = s_muse_resume_vm || noise_ctrl_is_running();
+    if (!operation_gate_take(0, "Mute Wi-Fi nap")) return false;
+    s_mute_resume_vm = s_mute_resume_vm || noise_ctrl_is_running();
     disconnect_vm_transports();
     wifi_mgr_disconnect();
-    s_muse_napping = true;
+    s_mute_napping = true;
     operation_gate_give();
     return true;
 }
-#endif  // CONFIG_MUSE_ENABLED
+#endif  // CONFIG_MUTE_ENABLED
 
-#if CONFIG_MUSE_ENABLED || CONFIG_HOMEHUB_VOICE
-// Muse's and the voice board's own Hatch session reach the VM with these.
+#if CONFIG_MUTE_ENABLED || CONFIG_HOMEHUB_VOICE
+// Mute's and the voice board's own Hatch session reach the VM with these.
 typedef struct {
     const char *want_vm;
     char *vm_id;
@@ -2259,7 +2249,7 @@ static const vm_info_t *find_vm_by_id(const vm_info_t *vms, int count, const cha
 // and (on token refresh) writes NVS.
 static void hatch_vm_task(void *arg) {
     hatch_vm_request_t *req = arg;
-    if (config_is_provisioned() && operation_gate_take(pdMS_TO_TICKS(15000), "Muse VM lookup")) {
+    if (config_is_provisioned() && operation_gate_take(pdMS_TO_TICKS(15000), "Mute VM lookup")) {
         vm_info_t vms[VM_API_MAX_VMS];
         int count = fetch_vms_with_refresh_with_gate_held(vms, VM_API_MAX_VMS);
         if (count > 0) {
@@ -2295,16 +2285,16 @@ bool app_hatch_vm_credentials(const char *want_vm, char *vm_id, size_t id_cap,
         .vm_name = vm_name, .name_cap = name_cap,
         .waiter = xTaskGetCurrentTaskHandle(),
     };
-    if (xTaskCreate(hatch_vm_task, "muse_vm", 8192, &req, 4, NULL) != pdPASS) {
+    if (xTaskCreate(hatch_vm_task, "mute_vm", 8192, &req, 4, NULL) != pdPASS) {
         return false;
     }
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     *vm_token = req.vm_token;
     return req.ok;
 }
-#endif  // CONFIG_MUSE_ENABLED || CONFIG_HOMEHUB_VOICE
+#endif  // CONFIG_MUTE_ENABLED || CONFIG_HOMEHUB_VOICE
 
-#if CONFIG_MUSE_ENABLED
+#if CONFIG_MUTE_ENABLED
 void app_ble_companion_set(bool advertise) {
     if (advertise) start_ble_setup_server_if_needed();
     ble_server_set_companion_advertising(advertise);
@@ -2326,17 +2316,17 @@ bool app_confirm_pairing_press(void) {
 
 static void reset_setup_task(void *arg) {
     (void)arg;
-    reset_setup_from_control("Muse menu reset");
+    reset_setup_from_control("Mute menu reset");
     stack_monitor_record(NULL);
     vTaskDelete(NULL);
 }
 
 void app_reset_setup_async(void) {
-    if (xTaskCreate(reset_setup_task, "muse_reset", 4096, NULL, 4, NULL) != pdPASS) {
+    if (xTaskCreate(reset_setup_task, "mute_reset", 4096, NULL, 4, NULL) != pdPASS) {
         atomic_store_explicit(&s_setup_reset_pending, true, memory_order_release);
     }
 }
-#endif  // CONFIG_MUSE_ENABLED
+#endif  // CONFIG_MUTE_ENABLED
 
 // ---- VM transport status forwarding ----------------------------------------
 
@@ -2459,8 +2449,8 @@ void app_run(void) {
     cJSON_InitHooks(&hooks);
 
     s_operation_gate = xSemaphoreCreateBinary();
-#if CONFIG_MUSE_ENABLED
-    s_muse_joined = xSemaphoreCreateBinary();
+#if CONFIG_MUTE_ENABLED
+    s_mute_joined = xSemaphoreCreateBinary();
 #endif
     s_auth_lock = xSemaphoreCreateMutex();
     s_setup_window_lock = xSemaphoreCreateMutex();
@@ -2473,8 +2463,8 @@ void app_run(void) {
     wifi_known_init();
 
     identity_init();
-#if CONFIG_MUSE_ENABLED
-    muse_glue_storage_ready();
+#if CONFIG_MUTE_ENABLED
+    mute_glue_storage_ready();
 #endif
 
     const esp_app_desc_t *app_desc = esp_app_get_description();
@@ -2491,13 +2481,21 @@ void app_run(void) {
     ESP_LOGI(TAG, "  Colour:   %s", have_colour ? colour : "(none)");
     ESP_LOGI(TAG, "  Region:   %s", have_region ? region : "(none)");
     ESP_LOGI(TAG, "  Verify:   %s", link_pairing_sign_factory_test());
-    // Only the hint gadgets.muse.ai displays; the full token is never logged.
-    ESP_LOGI(TAG, "  SDK token:  %.12s", identity_sdk_token() ? identity_sdk_token() : "(none)");
+    ESP_LOGI(TAG, "  Server:   %s", CONFIG_MUTE_SERVER_HOST);
     ESP_LOGI(TAG, "========================");
 
     link_pairing_init(identity_node_id(), identity_device_id(), identity_mac(),
-                      app_desc ? app_desc->version : "unknown", identity_sdk_token());
-    vm_api_set_sdk_token(identity_sdk_token());
+                      app_desc ? app_desc->version : "unknown");
+
+    // A build with CONFIG_MUTE_DEVICE_TOKEN is paired from the start; with
+    // CONFIG_HOMEHUB_WIFI_SSID too, it needs no setup at all.
+    if (CONFIG_MUTE_DEVICE_TOKEN[0] && !config_is_provisioned()) {
+        auth_lock_take();
+        if (store_token_pair_unlocked(CONFIG_MUTE_DEVICE_TOKEN, CONFIG_MUTE_DEVICE_TOKEN)) {
+            ESP_LOGI(TAG, "device token from the build stored");
+        }
+        auth_lock_give();
+    }
 
     if (!led_status_init()) {
         ESP_LOGW(TAG, "LED init failed — continuing without status LED");
@@ -2543,7 +2541,7 @@ void app_run(void) {
             // Legacy pair from firmware predating the setup_complete marker.
             setup_complete = config_mark_setup_complete();
         } else if (!setup_complete && (provisioned || (have_wifi && !WIFI_WITHOUT_PAIRING))) {
-            // Muse joins Wi-Fi from its own settings before (or without)
+            // Mute joins Wi-Fi from its own settings before (or without)
             // pairing, so Wi-Fi alone isn't a half-written pair there.
             // Half-written pair (only one of Wi-Fi creds / tokens, no marker):
             // clear it so we boot clean instead of auto-reconnecting half-paired.
@@ -2553,7 +2551,7 @@ void app_run(void) {
                 ESP_LOGE(TAG, "partial setup deletion could not be verified");
             }
         } else if (setup_complete && !have_wifi && WIFI_WITHOUT_PAIRING) {
-            // Muse can forget the network after pairing. With no Wi-Fi and
+            // Mute can forget the network after pairing. With no Wi-Fi and
             // pairing refused once setup is done, the device would be stuck,
             // so start over and let the app pair it again.
             ESP_LOGW(TAG, "setup done but no saved wifi; clearing for a fresh pair");
@@ -2602,8 +2600,8 @@ void app_run(void) {
     }
 
     s_setup_stage = setup_complete ? "done" : "idle";
-#if CONFIG_MUSE_ENABLED
-    // Muse's talk button confirms pairing and its menu resets setup; the Link
+#if CONFIG_MUTE_ENABLED
+    // Mute's talk button confirms pairing and its menu resets setup; the Link
     // button GPIO may be a display or codec pin on these boards.
     (void)on_button_short_press;
     (void)on_button_double_press;
@@ -2633,8 +2631,8 @@ void app_run(void) {
     } else {
         ui_set_ble("off");
         ESP_LOGI(TAG, "BLE setup disabled; long-press reset to pair again");
-#if CONFIG_MUSE_ENABLED && CONFIG_SPIRAM
-        // Muse may turn on its BLE companion later. The controller needs a
+#if CONFIG_MUTE_ENABLED && CONFIG_SPIRAM
+        // Mute may turn on its BLE companion later. The controller needs a
         // 30 KB internal block that TLS and the VM session leave fragmented,
         // so bring the stack up now; it stays silent until advertising is on.
         start_ble_setup_server_if_needed();
@@ -2727,8 +2725,8 @@ void app_run(void) {
         ESP_LOGI(TAG, "no wifi creds, waiting for BLE provision");
     }
 
-#if CONFIG_MUSE_ENABLED
-    muse_glue_link_ready();
+#if CONFIG_MUTE_ENABLED
+    mute_glue_link_ready();
 #endif
 
     // Heartbeat: log full state every 5 s so we can tell where we're stuck.
@@ -2740,8 +2738,8 @@ void app_run(void) {
             reset_setup_from_control("deferred setup reset");
         }
 
-#if CONFIG_MUSE_ENABLED
-        muse_keep_vm_session();
+#if CONFIG_MUTE_ENABLED
+        mute_keep_vm_session();
 #endif
 
         // Runs on every heartbeat tick, and does two things.
@@ -2807,8 +2805,8 @@ void app_run(void) {
                  (unsigned long)(tun.tx_dropped - prev_tun.tx_dropped));
         prev_tun = tun;
         stack_monitor_record(&stack);
-#if CONFIG_MUSE_ENABLED
-        muse_heartbeat_pause();
+#if CONFIG_MUTE_ENABLED
+        mute_heartbeat_pause();
 #else
         vTaskDelay(pdMS_TO_TICKS(5000));
 #endif

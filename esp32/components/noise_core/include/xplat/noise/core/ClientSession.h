@@ -28,7 +28,7 @@
 #include <xplat/noise/core/Transport.h>
 #include <xplat/noise/core/TransportFrameCodec.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 // Result for one inbound encrypted websocket payload.
 //
@@ -161,4 +161,4 @@ class ClientSession {
   Stage stage_{Stage::Init};
 };
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

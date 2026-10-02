@@ -1,6 +1,6 @@
 # Disconnected/error treatment.
 face=error
-caption=CAN'T REACH MUSE
+caption=CAN'T REACH MUTE
 wifi=failed
 ble=off
 link=error

@@ -1,7 +1,7 @@
 ---
 name: gadget-google-nest-hub
 description: >-
-  Play supported media and control playback or volume on Google Nest Hub through Muse Home
+  Play supported media and control playback or volume on Google Nest Hub through Mute Home
   Link. Use the shared Google Cast skill with generation-specific capabilities; excludes Nest
   Hub Max and general screen or sleep-sensing access.
 ---

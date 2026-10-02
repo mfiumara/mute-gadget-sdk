@@ -19,7 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 enum class StatusCode : uint8_t {
   OK = 0,
@@ -177,4 +177,4 @@ class [[nodiscard]] StatusWithSize {
   size_t size_{0};
 };
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

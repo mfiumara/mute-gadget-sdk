@@ -71,7 +71,7 @@ def main() -> None:
     assert binary.is_file(), binary
     assert SCENARIOS, "no simulator scenarios found"
 
-    with tempfile.TemporaryDirectory(prefix="muse-simulator-test-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="mute-simulator-test-") as tmp:
         tmp_path = Path(tmp)
         hashes: dict[str, str] = {}
         for scenario in SCENARIOS:

@@ -2,7 +2,7 @@
 name: gadget-google-tv-streamer
 description: >-
   Control Google TV Streamer media through Google Cast or remote keys and app links through
-  Android TV Remote v2 using Muse Home Link. Use the currently available service and normal
+  Android TV Remote v2 using Mute Home Link. Use the currently available service and normal
   Remote v2 pairing; not a generic Google TV device skill.
 ---
 

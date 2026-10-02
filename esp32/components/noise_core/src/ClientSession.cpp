@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <cstdint>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 namespace {
 
 [[nodiscard]] bool IsValidOutput(ByteSpan bytes) noexcept {
@@ -372,4 +372,4 @@ ClientSessionInboundResult ClientSession::ProcessInboundWebSocketPayload(
       decodedFrame};
 }
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

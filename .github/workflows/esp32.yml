@@ -84,8 +84,8 @@ jobs:
         run: |
           cmake -S esp32/simulator -B build/simulator -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DMUSE_SIM_SANITIZERS=${{ matrix.sanitizers }} \
-            -DMUSE_SIM_WARNINGS_AS_ERRORS=ON
+            -DMUTE_SIM_SANITIZERS=${{ matrix.sanitizers }} \
+            -DMUTE_SIM_WARNINGS_AS_ERRORS=ON
 
       - name: Build
         run: cmake --build build/simulator --parallel
@@ -116,24 +116,24 @@ jobs:
           - board: home-assistant-voice
             target: esp32s3
             overlays: ";devices/sdkconfig.home-assistant-voice"
-          - board: muse-waveshare-s3-175c
+          - board: mute-waveshare-s3-175c
             target: esp32s3
-            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-waveshare-s3-175c"
-          - board: muse-aipi
+            overlays: ";devices/sdkconfig.mute;devices/sdkconfig.mute-waveshare-s3-175c"
+          - board: mute-aipi
             target: esp32s3
-            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-aipi"
-          - board: muse-waveshare-c6-18
+            overlays: ";devices/sdkconfig.mute;devices/sdkconfig.mute-aipi"
+          - board: mute-waveshare-c6-18
             target: esp32c6
-            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-waveshare-c6-18"
-          - board: muse-sensecap-watcher
+            overlays: ";devices/sdkconfig.mute;devices/sdkconfig.mute-waveshare-c6-18"
+          - board: mute-sensecap-watcher
             target: esp32s3
-            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-sensecap-watcher"
-          - board: muse-m5stack-sticks3
+            overlays: ";devices/sdkconfig.mute;devices/sdkconfig.mute-sensecap-watcher"
+          - board: mute-m5stack-sticks3
             target: esp32s3
-            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-m5stack-sticks3"
-          - board: muse-m5stack-stickc-plus2
+            overlays: ";devices/sdkconfig.mute;devices/sdkconfig.mute-m5stack-sticks3"
+          - board: mute-m5stack-stickc-plus2
             target: esp32
-            overlays: ";devices/sdkconfig.muse;devices/sdkconfig.muse-m5stack-stickc-plus2"
+            overlays: ";devices/sdkconfig.mute;devices/sdkconfig.mute-m5stack-stickc-plus2"
     defaults:
       run:
         shell: bash

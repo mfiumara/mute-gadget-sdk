@@ -22,11 +22,8 @@
 
 #include "cJSON.h"
 
-// sdk_token may be NULL; when set it rides on the encrypted pairing_confirmed
-// status so the app can present it at device-token mint.
 void link_pairing_init(const char *node_id, const char *device_id,
-                       const char *mac, const char *firmware_version,
-                       const char *sdk_token);
+                       const char *mac, const char *firmware_version);
 void link_pairing_reset(void);
 void link_pairing_add_device_info(cJSON *root);
 

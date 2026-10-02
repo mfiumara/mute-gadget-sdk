@@ -1,7 +1,7 @@
 ---
 name: gadget-sonos-speakers
 description: >-
-  Control Sonos playback, volume, mute, and speaker grouping through Muse Home Link. Use when
+  Control Sonos playback, volume, mute, and speaker grouping through Mute Home Link. Use when
   the intended speaker exposes compatible local UPnP services; resolve the room and group
   coordinator before acting.
 ---

@@ -2,7 +2,7 @@
 name: gadget-elgato-key-light
 description: >-
   Control Elgato Key Light power, brightness, white temperature, and requested identification
-  through Muse Home Link. Use with the local HTTP light API; the documented device is board
+  through Mute Home Link. Use with the local HTTP light API; the documented device is board
   type 53, not other light variants.
 ---
 

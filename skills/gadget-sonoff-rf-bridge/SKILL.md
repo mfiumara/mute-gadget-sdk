@@ -2,7 +2,7 @@
 name: gadget-sonoff-rf-bridge
 description: >-
   Capture or transmit user-approved fixed-code 433 MHz actions through a stock Sonoff RF
-  Bridge R2 using Muse Home Link. Use compatible HTTP zeroconf firmware, existing device
+  Bridge R2 using Mute Home Link. Use compatible HTTP zeroconf firmware, existing device
   credentials, and a confirmed channel map; not rolling codes.
 ---
 

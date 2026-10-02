@@ -24,7 +24,7 @@
 #include <xplat/noise/core/Span.h>
 #include <xplat/noise/core/Status.h>
 
-namespace musegadgets::noise::core {
+namespace mutegadgets::noise::core {
 
 // Exception-free post-handshake transport for
 // `Noise_XX_25519_AESGCM_SHA256`.
@@ -117,4 +117,4 @@ class Transport {
   Status initStatus_{OkStatus()};
 };
 
-} // namespace musegadgets::noise::core
+} // namespace mutegadgets::noise::core

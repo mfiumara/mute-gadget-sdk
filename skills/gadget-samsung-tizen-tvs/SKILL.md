@@ -2,7 +2,7 @@
 name: gadget-samsung-tizen-tvs
 description: >-
   Control compatible Samsung Tizen TVs through their paired local WebSocket interface using
-  Muse Home Link. Use for requested remote or app actions, and Frame Art operations only when
+  Mute Home Link. Use for requested remote or app actions, and Frame Art operations only when
   the model and Art API support them.
 ---
 

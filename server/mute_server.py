@@ -22,7 +22,7 @@ you can talk to one gadget and have it drive another.
 Run it with the gadget package next to it:
 
     MUTE_DEVICE_TOKEN=... MUTE_LLM_API_KEY=... \\
-        uv run --with ../linux server/mute_server.py
+        uv run --with ../linux --with aiohttp mute_server.py
 
 See server/README.md for the settings.
 """
@@ -32,7 +32,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import hmac
-import http
 import json
 import logging
 import os
@@ -40,9 +39,7 @@ import urllib.parse
 import urllib.request
 import uuid
 
-from websockets.asyncio.server import serve
-from websockets.datastructures import Headers
-from websockets.http11 import Response
+from aiohttp import WSMsgType, web
 
 from mutegadget.link_client import MessageDecoder, encode_message
 from mutegadget.noise import (
@@ -397,31 +394,58 @@ def _authorized(headers) -> bool:
     return bool(TOKEN) and hmac.compare_digest(token, TOKEN)
 
 
-def _json(status: int, obj: dict) -> Response:
-    body = json.dumps(obj).encode()
-    return Response(status, http.HTTPStatus(status).phrase,
-                    Headers({"Content-Type": "application/json", "Content-Length": str(len(body))}), body)
+class _Socket:
+    """The three WebSocket calls Device needs, over aiohttp."""
+
+    def __init__(self, ws: web.WebSocketResponse) -> None:
+        self.ws = ws
+
+    async def send(self, data: bytes) -> None:
+        await self.ws.send_bytes(data)
+
+    async def recv(self) -> bytes:
+        msg = await self.ws.receive()
+        if msg.type != WSMsgType.BINARY:
+            raise ConnectionError(f"WebSocket {msg.type.name.lower()}")
+        return msg.data
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self) -> bytes:
+        try:
+            return await self.recv()
+        except ConnectionError:
+            raise StopAsyncIteration from None
 
 
-def process_request(connection, request):
-    path = request.path.split("?")[0]
+async def handle(request: web.Request) -> web.StreamResponse:
     if not _authorized(request.headers):
-        return _json(401, {"error": "unauthorized"})
+        return web.json_response({"error": "unauthorized"}, status=401)
+    path = request.path
     if path == "/v1/noise":
-        return None  # go on with the WebSocket upgrade
+        ws = web.WebSocketResponse(max_msg_size=0)
+        await ws.prepare(request)
+        await serve_device(_Socket(ws))
+        return ws
     if path == "/fetch_vms":
-        host = request.headers.get("Host", "")
-        return _json(200, {"vm_list": [{
+        return web.json_response({"vm_list": [{
             "vm_id": VM_ID, "vm_name": VM_ID, "default": True, "vm_auth_token": TOKEN,
-            "vm_ws_url": f"wss://{host}/v1/noise",
+            "vm_ws_url": f"wss://{request.host}/v1/noise",
         }]})
     if path in ("/device_token/refresh", "/device_token/mint"):
         # One shared token that never expires: hand it straight back.
-        return _json(200, {"access_token": TOKEN, "refresh_token": TOKEN})
-    return _json(404, {"error": "not found"})
+        return web.json_response({"access_token": TOKEN, "refresh_token": TOKEN})
+    return web.json_response({"error": "not found"}, status=404)
 
 
-async def handler(ws) -> None:
+def make_app() -> web.Application:
+    app = web.Application()
+    app.router.add_route("*", "/{tail:.*}", handle)
+    return app
+
+
+async def serve_device(ws) -> None:
     device = Device(ws)
     try:
         await device.run()
@@ -436,16 +460,15 @@ async def handler(ws) -> None:
                 future.set_exception(ConnectionError("gadget disconnected"))
 
 
-async def main() -> None:
+def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     if not TOKEN:
         raise SystemExit("set MUTE_DEVICE_TOKEN (any long random string; gadgets use it to connect)")
     host = os.environ.get("MUTE_HOST", "0.0.0.0")
     port = int(os.environ.get("MUTE_PORT", "8080"))
-    async with serve(handler, host, port, process_request=process_request, max_size=None) as server:
-        log.info("Mute server on http://%s:%d, model %s at %s", host, port, LLM_MODEL, LLM_URL)
-        await server.serve_forever()
+    log.info("Mute server on http://%s:%d, model %s at %s", host, port, LLM_MODEL, LLM_URL)
+    web.run_app(make_app(), host=host, port=port, print=None)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    asyncio.run(main())
+    main()

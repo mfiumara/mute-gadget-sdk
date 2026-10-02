@@ -1,7 +1,7 @@
 // Mute server on Cloudflare: the Python server runs unchanged in a container,
 // one instance shared by every gadget so they can see each other's tools.
-// Requests to http://workers-ai.internal/v1 from inside the container are
-// answered here with Workers AI, behind an OpenAI-compatible surface.
+// /__ai/v1/* is Workers AI behind an OpenAI-compatible surface, gated by the
+// device token; the container uses it as its model provider by default.
 
 import { Container, getContainer } from "@cloudflare/containers";
 
@@ -16,8 +16,15 @@ function toBase64(bytes) {
   return btoa(s);
 }
 
-async function workersAi(req, env) {
-  const path = new URL(req.url).pathname;
+function authorized(request, env) {
+  const enc = new TextEncoder();
+  const got = enc.encode(request.headers.get("Authorization") || "");
+  const want = enc.encode(`Bearer ${env.MUTE_DEVICE_TOKEN}`);
+  return Boolean(env.MUTE_DEVICE_TOKEN) && got.byteLength === want.byteLength
+    && crypto.subtle.timingSafeEqual(got, want);
+}
+
+async function workersAi(path, req, env) {
   try {
     if (path === "/v1/chat/completions") {
       const { model, messages, tools } = await req.json();
@@ -46,6 +53,7 @@ async function workersAi(req, env) {
     }
     return Response.json({ error: "not found" }, { status: 404 });
   } catch (err) {
+    console.error("workers ai", path, err);
     return Response.json({ error: String(err) }, { status: 502 });
   }
 }
@@ -56,16 +64,24 @@ export class MuteServer extends Container {
   sleepAfter = "1h";
   enableInternet = true;
 
-  static outboundByHost = { "workers-ai.internal": workersAi };
-
   constructor(ctx, env) {
     super(ctx, env);
-    this.envVars = Object.fromEntries(PASSTHROUGH.filter((k) => env[k]).map((k) => [k, env[k]]));
+    const vars = Object.fromEntries(PASSTHROUGH.filter((k) => env[k]).map((k) => [k, env[k]]));
+    // The built-in Workers AI shim takes the device token as its key.
+    if (vars.MUTE_LLM_BASE_URL?.includes("/__ai/") && !vars.MUTE_LLM_API_KEY) {
+      vars.MUTE_LLM_API_KEY = env.MUTE_DEVICE_TOKEN;
+    }
+    this.envVars = vars;
   }
 }
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+    if (url.pathname.startsWith("/__ai/")) {
+      if (!authorized(request, env)) return Response.json({ error: "unauthorized" }, { status: 401 });
+      return workersAi(url.pathname.slice("/__ai".length), request, env);
+    }
     return getContainer(env.MUTE_SERVER, "main").fetch(request);
   },
 };

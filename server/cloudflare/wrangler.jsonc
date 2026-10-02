@@ -4,7 +4,7 @@
   "main": "src/index.js",
   "compatibility_date": "2026-09-01",
   "observability": { "enabled": true },
-  "ai": { "binding": "AI" },
+  "ai": { "binding": "AI", "remote": true },
   "containers": [
     {
       "class_name": "MuteServer",
@@ -21,7 +21,7 @@
   "vars": {
     // Workers AI by default. To use another provider, set MUTE_LLM_BASE_URL
     // here and MUTE_LLM_API_KEY with `wrangler secret put`.
-    "MUTE_LLM_BASE_URL": "http://workers-ai.internal/v1",
+    "MUTE_LLM_BASE_URL": "https://mute-server.pontveer.workers.dev/__ai/v1",
     "MUTE_LLM_MODEL": "@cf/mistralai/mistral-small-3.1-24b-instruct",
     "MUTE_STT_MODEL": "@cf/openai/whisper-large-v3-turbo",
     "MUTE_TTS_MODEL": "@cf/deepgram/aura-1",

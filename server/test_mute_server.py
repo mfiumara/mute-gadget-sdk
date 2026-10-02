@@ -13,7 +13,7 @@
 
 """The real Linux gadget client against the real server, with a fake model.
 
-    uv run --with pytest --with ../linux pytest test_mute_server.py
+    uv run --with pytest --with aiohttp --with ../linux pytest test_mute_server.py
 """
 
 import asyncio
@@ -21,14 +21,28 @@ import os
 
 os.environ["MUTE_DEVICE_TOKEN"] = "test-token"
 
+import contextlib  # noqa: E402
+import json  # noqa: E402
+import urllib.request  # noqa: E402
+
 import mute_server  # noqa: E402
-from websockets.asyncio.server import serve  # noqa: E402
+from aiohttp.test_utils import TestServer  # noqa: E402
 
 from mutegadget import mute_api  # noqa: E402
 from mutegadget.link_client import DeviceDescription, LinkSession  # noqa: E402
 
 COMMANDS = {"system.run": {"description": "run a shell command",
                            "required": {"command": {"type": "string", "description": "cmd"}}}}
+
+
+@contextlib.asynccontextmanager
+async def running_server():
+    server = TestServer(mute_server.make_app(), host="127.0.0.1")
+    await server.start_server()
+    try:
+        yield str(server.make_url("")).rstrip("/")
+    finally:
+        await server.close()
 
 
 def fake_complete(messages, tools):
@@ -46,9 +60,7 @@ def test_chat_drives_a_device_tool(monkeypatch):
     monkeypatch.setattr(mute_server, "complete", fake_complete)
 
     async def scenario():
-        async with serve(mute_server.handler, "127.0.0.1", 0,
-                         process_request=mute_server.process_request) as server:
-            url = f"http://127.0.0.1:{server.sockets[0].getsockname()[1]}"
+        async with running_server() as url:
 
             assert (await asyncio.to_thread(mute_api.fetch_vms_with_status, "wrong", url))[1] == 401
             vms, _ = await asyncio.to_thread(mute_api.fetch_vms_with_status, "test-token", url)
@@ -84,7 +96,6 @@ def test_chat_drives_a_device_tool(monkeypatch):
 def test_voice_note_turn_like_the_esp32(monkeypatch):
     """Subscribe, send a voice note, get the reply event, then its speech."""
     import base64
-    import json
 
     from websockets.asyncio.client import connect
 
@@ -99,10 +110,8 @@ def test_voice_note_turn_like_the_esp32(monkeypatch):
     wav = b"RIFF\xff\xff\xff\xffWAVEfmt " + bytes(20) + b"data\xff\xff\xff\xff" + b"\x01\x00" * 100
 
     async def scenario():
-        async with serve(mute_server.handler, "127.0.0.1", 0,
-                         process_request=mute_server.process_request) as server:
-            port = server.sockets[0].getsockname()[1]
-            ws = await connect(f"ws://127.0.0.1:{port}/v1/noise?vm_id=mute",
+        async with running_server() as url:
+            ws = await connect(url.replace("http", "ws", 1) + "/v1/noise?vm_id=mute",
                                additional_headers={"Authorization": "Bearer test-token"})
             hs = NoiseXXInitiator()
             hs.initialize()
@@ -152,5 +161,29 @@ def test_voice_note_turn_like_the_esp32(monkeypatch):
             rows = json.loads(await collect(hist))["result"]["chat_events"]
             assert rows[0]["event_name"] == "message.assistant"
             await ws.close()
+
+    asyncio.run(scenario())
+
+
+def test_token_endpoints_accept_post_like_the_esp32():
+    """The firmware POSTs refresh and mint with a JSON body."""
+    async def scenario():
+        async with running_server() as url:
+            def post(path, auth):
+                req = urllib.request.Request(url + path, data=b'{"device_id":"homelink-abcdef"}',
+                                             method="POST")
+                req.add_header("Authorization", auth)
+                req.add_header("Content-Type", "application/json")
+                req.add_header("X-API-Version", "1.0.0")
+                try:
+                    with urllib.request.urlopen(req, timeout=5) as resp:
+                        return resp.status, json.loads(resp.read())
+                except urllib.error.HTTPError as exc:
+                    return exc.code, None
+
+            for path in ("/device_token/refresh", "/device_token/mint"):
+                assert await asyncio.to_thread(post, path, "Bearer hatch_refresh:test-token") == (
+                    200, {"access_token": "test-token", "refresh_token": "test-token"})
+                assert (await asyncio.to_thread(post, path, "Bearer hatch_refresh:nope"))[0] == 401
 
     asyncio.run(scenario())

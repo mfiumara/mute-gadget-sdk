@@ -14,7 +14,7 @@ command on your Raspberry Pi.
 ```sh
 export MUTE_DEVICE_TOKEN="$(openssl rand -hex 32)"   # gadgets use this to connect
 export MUTE_LLM_API_KEY=sk-...
-uv run --with ../linux mute_server.py
+uv run --with ../linux --with aiohttp mute_server.py
 ```
 
 It listens on `0.0.0.0:8080`. Put it behind a TLS reverse proxy (Caddy,
@@ -38,11 +38,38 @@ Local model with Ollama:
 
 ```sh
 MUTE_LLM_BASE_URL=http://localhost:11434/v1 MUTE_LLM_MODEL=qwen3:8b \
-MUTE_DEVICE_TOKEN=... uv run --with ../linux mute_server.py
+MUTE_DEVICE_TOKEN=... uv run --with ../linux --with aiohttp mute_server.py
 ```
 
 Voice gadgets also need `/v1/audio/transcriptions` and `/v1/audio/speech` at
 the same base URL. Ollama has neither; text gadgets work without them.
+
+## Run it on Cloudflare
+
+[`cloudflare/`](cloudflare) runs this server unchanged in a Cloudflare
+Container behind a Worker, on your `workers.dev` hostname with a public TLS
+certificate, which is what the ESP32 needs. It uses Workers AI by default, so
+it needs no other provider key: Mistral Small 3.1 for chat and tools, Whisper
+for speech to text, and Deepgram Aura for speech. Containers need the Workers
+Paid plan.
+
+```sh
+cd cloudflare
+npm install
+npx wrangler secret put MUTE_DEVICE_TOKEN     # paste a long random string
+# set MUTE_LLM_BASE_URL in wrangler.jsonc to https://mute-server.<your-subdomain>.workers.dev/__ai/v1
+npx wrangler deploy
+```
+
+To use another provider, point `MUTE_LLM_BASE_URL` and the model variables in
+`wrangler.jsonc` at it and `wrangler secret put MUTE_LLM_API_KEY`. One
+container serves every gadget; chat history lives in its memory.
+
+Check a deployment end to end, with real gadget clients and the real model:
+
+```sh
+MUTE_DEVICE_TOKEN=... uv run --with ../linux live_test.py https://mute-server.<your-subdomain>.workers.dev
+```
 
 ## What it implements
 
@@ -67,5 +94,5 @@ what stops an active man-in-the-middle.
 ## Tests
 
 ```sh
-uv run --with pytest --with ../linux pytest
+uv run --with pytest --with aiohttp --with ../linux pytest
 ```

@@ -47,7 +47,7 @@ the same base URL. Ollama has neither; text gadgets work without them.
 ## Run it on Cloudflare
 
 [`cloudflare/`](cloudflare) runs this server unchanged in a Cloudflare
-Container behind a Worker, on your `workers.dev` hostname with a public TLS
+Container behind a Worker, on a hostname of yours with a public TLS
 certificate, which is what the ESP32 needs. It uses Workers AI by default, so
 it needs no other provider key: Mistral Small 3.1 for chat and tools, Whisper
 for speech to text, and Deepgram Aura for speech. Containers need the Workers
@@ -57,7 +57,8 @@ Paid plan.
 cd cloudflare
 npm install
 npx wrangler secret put MUTE_DEVICE_TOKEN     # paste a long random string
-# set MUTE_LLM_BASE_URL in wrangler.jsonc to https://mute-server.<your-subdomain>.workers.dev/__ai/v1
+# in wrangler.jsonc, set the route to your hostname and
+# MUTE_LLM_BASE_URL to https://<your hostname>/__ai/v1
 npx wrangler deploy
 ```
 
@@ -68,7 +69,7 @@ container serves every gadget; chat history lives in its memory.
 Check a deployment end to end, with real gadget clients and the real model:
 
 ```sh
-MUTE_DEVICE_TOKEN=... uv run --with ../linux live_test.py https://mute-server.<your-subdomain>.workers.dev
+MUTE_DEVICE_TOKEN=... uv run --with ../linux live_test.py https://<your hostname>
 ```
 
 ## What it implements
